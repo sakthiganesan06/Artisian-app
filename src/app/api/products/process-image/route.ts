@@ -33,9 +33,18 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      // Read the original image
-      const originalPath = path.join(process.cwd(), 'public', image.originalUrl);
-      const imageBuffer = await fs.readFile(originalPath);
+      // Read the original image safely (Data URI, HTTP URL, or local filesystem)
+      let imageBuffer: Buffer;
+      if (image.originalUrl.startsWith('data:')) {
+        const base64Data = image.originalUrl.split(',')[1];
+        imageBuffer = Buffer.from(base64Data, 'base64');
+      } else if (image.originalUrl.startsWith('http://') || image.originalUrl.startsWith('https://')) {
+        const fetchRes = await fetch(image.originalUrl);
+        imageBuffer = Buffer.from(await fetchRes.arrayBuffer());
+      } else {
+        const originalPath = path.join(process.cwd(), 'public', image.originalUrl);
+        imageBuffer = await fs.readFile(originalPath);
+      }
 
       // Process image
       const processor = getImageProcessor();

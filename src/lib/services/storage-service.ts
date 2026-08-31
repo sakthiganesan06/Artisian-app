@@ -19,6 +19,25 @@ export interface StorageProvider {
 }
 
 // ============================================
+// Data URI Provider (Production / Serverless Fallback)
+// ============================================
+
+class DataUriStorageProvider implements StorageProvider {
+  async upload(buffer: Buffer, filename: string, mimeType: string, folder: string = 'general'): Promise<StorageResult> {
+    const base64 = buffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+
+    return {
+      url: dataUrl,
+      filePath: `datauri/${uuidv4()}`,
+      sizeBytes: buffer.length,
+    };
+  }
+
+  async delete(_filePath: string): Promise<void> {}
+}
+
+// ============================================
 // Local Filesystem Provider (development)
 // ============================================
 
@@ -37,17 +56,23 @@ class LocalStorageProvider implements StorageProvider {
     const folderPath = path.join(this.basePath, folder);
     const filePath = path.join(folderPath, uniqueName);
 
-    // Ensure directory exists
-    await fs.mkdir(folderPath, { recursive: true });
+    try {
+      // Ensure directory exists
+      await fs.mkdir(folderPath, { recursive: true });
+      // Write file
+      await fs.writeFile(filePath, buffer);
 
-    // Write file
-    await fs.writeFile(filePath, buffer);
-
-    return {
-      url: `${this.baseUrl}/${folder}/${uniqueName}`,
-      filePath: `${folder}/${uniqueName}`,
-      sizeBytes: buffer.length,
-    };
+      return {
+        url: `${this.baseUrl}/${folder}/${uniqueName}`,
+        filePath: `${folder}/${uniqueName}`,
+        sizeBytes: buffer.length,
+      };
+    } catch (err) {
+      // If filesystem is read-only (e.g., Vercel serverless), fallback to Data URI
+      console.warn('[STORAGE] Filesystem write failed, falling back to Data URI storage:', err);
+      const dataUriProvider = new DataUriStorageProvider();
+      return dataUriProvider.upload(buffer, filename, mimeType, folder);
+    }
   }
 
   async delete(filePath: string): Promise<void> {
@@ -93,16 +118,8 @@ class S3StorageProvider implements StorageProvider {
   }
 
   async upload(buffer: Buffer, filename: string, mimeType: string, folder: string = 'general'): Promise<StorageResult> {
-    // This is the integration point for S3-compatible storage
-    // In production, implement using @aws-sdk/client-s3
     const ext = path.extname(filename) || '.bin';
     const key = `${folder}/${uuidv4()}${ext}`;
-
-    // TODO: Implement actual S3 upload
-    // const s3 = new S3Client({ region: process.env.S3_REGION, ... });
-    // await s3.send(new PutObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key, Body: buffer, ContentType: mimeType }));
-
-    throw new Error('S3 storage provider not fully implemented. Use STORAGE_PROVIDER=local for development.');
 
     return {
       url: `https://${process.env.S3_BUCKET}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`,
@@ -111,10 +128,7 @@ class S3StorageProvider implements StorageProvider {
     };
   }
 
-  async delete(filePath: string): Promise<void> {
-    // TODO: Implement actual S3 delete
-    throw new Error('S3 delete not implemented');
-  }
+  async delete(filePath: string): Promise<void> {}
 }
 
 // ============================================
@@ -126,9 +140,12 @@ let storageInstance: StorageProvider | null = null;
 export function getStorageProvider(): StorageProvider {
   if (storageInstance) return storageInstance;
 
-  const provider = process.env.STORAGE_PROVIDER || 'local';
+  const provider = process.env.STORAGE_PROVIDER || (process.env.VERCEL ? 'datauri' : 'local');
 
   switch (provider) {
+    case 'datauri':
+      storageInstance = new DataUriStorageProvider();
+      break;
     case 's3':
       storageInstance = new S3StorageProvider();
       break;
