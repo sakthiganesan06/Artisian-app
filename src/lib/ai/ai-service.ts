@@ -1,5 +1,5 @@
 // ============================================
-// AI Service Abstraction (Google Gemini)
+// AI Service Abstraction (Groq Llama 3.3 & Google Gemini)
 // Used for: profile extraction, product extraction, description generation
 // NOT used for: pricing, inventory, orders (those are deterministic)
 // ============================================
@@ -64,20 +64,168 @@ export interface AIService {
 }
 
 // ============================================
-// Google Gemini Implementation
+// 1. Groq AI Implementation (Ultra-Fast LPU Inference)
+// Models: llama-3.3-70b-versatile, llama-3.1-8b-instant
 // ============================================
 
-class GeminiAIService implements AIService {
+export class GroqAIService implements AIService {
   private apiKey: string;
 
-  constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        'GEMINI_API_KEY environment variable is not set. AI features require a valid Google Gemini API key.'
-      );
+  constructor(apiKey?: string) {
+    const key = apiKey || process.env.GROQ_API_KEY;
+    if (!key) {
+      throw new Error('GROQ_API_KEY environment variable is not set.');
     }
-    this.apiKey = apiKey;
+    this.apiKey = key.trim();
+  }
+
+  private async callGroq(prompt: string, systemInstruction: string): Promise<string> {
+    const modelsToTry = [
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+      'mixtral-8x7b-32768',
+    ];
+
+    for (const modelName of modelsToTry) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: 'system', content: systemInstruction },
+              { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.1,
+          }),
+        });
+
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = await res.json();
+          const content = data.choices?.[0]?.message?.content;
+          if (content && content.trim()) {
+            return content.trim();
+          }
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          console.warn(`[Groq model ${modelName} returned ${res.status}]:`, errData);
+        }
+      } catch (err) {
+        console.warn(`[Groq model ${modelName} error]:`, err instanceof Error ? err.message : err);
+      }
+    }
+
+    throw new Error('All Groq model candidates failed or timed out.');
+  }
+
+  async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
+    const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts and artisan profiling.
+Extract structured artisan profile information from a speech transcript in any Indian language. Return valid JSON only.
+Expected JSON:
+{
+  "name": string or null,
+  "location": string or null,
+  "district": string or null,
+  "state": string or null,
+  "craftType": string or null,
+  "experience": string or null,
+  "artisanStory": string or null
+}`;
+
+    const prompt = `Language context: ${language || 'Indian regional'}\nExtract artisan profile from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
+
+    const response = await this.callGroq(prompt, systemInstruction);
+    const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return artisanProfileExtractionSchema.parse(parsed);
+  }
+
+  async extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction> {
+    const systemInstruction = `You are an expert multilingual product information extraction assistant for handcrafted artisan products across India.
+Extract structured product details from a speech transcript in any Indian language. Return valid JSON only.
+Expected JSON:
+{
+  "productName": string or null,
+  "category": string or null,
+  "material": string or null,
+  "quantity": number or null,
+  "productionTime": string or null,
+  "craftTechnique": string or null,
+  "dimensions": string or null,
+  "color": string or null,
+  "weight": string or null,
+  "otherAttributes": object or null
+}`;
+
+    let prompt = `Language context: ${language || 'Indian regional'}\nExtract product details from this transcript:\n\n"${transcript}"`;
+    if (additionalText) {
+      prompt += `\n\nAdditional text:\n"${additionalText}"`;
+    }
+
+    const response = await this.callGroq(prompt, systemInstruction);
+    const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return productExtractionSchema.parse(parsed);
+  }
+
+  async generateProductDescription(params: {
+    artisanName: string;
+    artisanCraft?: string;
+    artisanLocation?: string;
+    productData: ProductExtraction;
+    transcript: string;
+    additionalText?: string;
+    language?: string;
+  }): Promise<ProductDescription> {
+    const systemInstruction = `You are a professional product description writer for an authentic Indian artisan marketplace.
+Write compelling, authentic product descriptions celebrating handmade craftsmanship. Return valid JSON only.
+Expected JSON:
+{
+  "title": "Compelling product title",
+  "shortDescription": "2-3 sentence summary",
+  "longDescription": "Detailed 2-3 paragraph description",
+  "highlights": ["highlight 1", "highlight 2", ...]
+}`;
+
+    const productInfo = JSON.stringify(params.productData, null, 2);
+    const prompt = `Language preference: ${params.language || 'en'}
+Artisan: ${params.artisanName}${params.artisanCraft ? `, specializing in ${params.artisanCraft}` : ''}${params.artisanLocation ? ` from ${params.artisanLocation}` : ''}
+Product data:
+${productInfo}
+Original transcript: "${params.transcript}"
+${params.additionalText ? `Additional info: "${params.additionalText}"` : ''}`;
+
+    const response = await this.callGroq(prompt, systemInstruction);
+    const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    return productDescriptionSchema.parse(parsed);
+  }
+}
+
+// ============================================
+// 2. Google Gemini Implementation
+// ============================================
+
+export class GeminiAIService implements AIService {
+  private apiKey: string;
+
+  constructor(apiKey?: string) {
+    const key = apiKey || process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error('GEMINI_API_KEY environment variable is not set.');
+    }
+    this.apiKey = key.trim();
   }
 
   private async callGemini(prompt: string, systemInstruction: string): Promise<string> {
@@ -132,21 +280,13 @@ class GeminiAIService implements AIService {
       }
     }
 
-    throw new Error('All Gemini model candidates failed or timed out. Please verify API key.');
+    throw new Error('All Gemini model candidates failed or timed out.');
   }
 
   async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
     const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts and artisan profiling.
-Your job is to extract structured artisan profile information from a speech transcript in any Indian language (such as Tamil, Hindi, Telugu, Kannada, Malayalam, Bengali, etc.).
-
-CRITICAL RULES:
-1. ONLY extract information that is EXPLICITLY present in the transcript.
-2. DO NOT invent, assume, or hallucinate any information.
-3. If a field is not mentioned in the transcript, set it to null.
-4. Understand regional terms (e.g., in Tamil: "என் பெயர்", "நெசவு", "பட்டுப் புடவை"; in Hindi: "मेरा नाम", "मिट्टी के बर्तन", "हथकरघा").
-5. Return ONLY valid JSON with no additional text or markdown.
-
-Expected JSON format:
+Your job is to extract structured artisan profile information from a speech transcript in any Indian language. Return valid JSON only.
+Expected JSON:
 {
   "name": string or null,
   "location": string or null,
@@ -167,16 +307,8 @@ Expected JSON format:
 
   async extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction> {
     const systemInstruction = `You are an expert multilingual product information extraction assistant for handcrafted products.
-Your job is to extract structured product details from an artisan's speech transcript in any Indian language.
-
-CRITICAL RULES:
-1. ONLY extract information that is EXPLICITLY present in the transcript.
-2. DO NOT invent product names, colors, dimensions, or any attribute not mentioned.
-3. If a field is not mentioned, set it to null.
-4. For quantity, extract the number if mentioned (e.g., in Tamil "பத்து துண்டுகள்" -> 10, in Hindi "पाँच पीस" -> 5).
-5. Return ONLY valid JSON with no additional text or markdown.
-
-Expected JSON format:
+Your job is to extract structured product details from an artisan's speech transcript in any Indian language. Return valid JSON only.
+Expected JSON:
 {
   "productName": string or null,
   "category": string or null,
@@ -211,16 +343,8 @@ Expected JSON format:
     language?: string;
   }): Promise<ProductDescription> {
     const systemInstruction = `You are a professional product description writer for an authentic Indian artisan marketplace.
-Write compelling, authentic product descriptions that celebrate genuine handmade craftsmanship.
-
-CRITICAL RULES:
-1. Base descriptions ONLY on the provided product data and transcript.
-2. DO NOT invent certifications, awards, or false attributes not in the data.
-3. Highlight the craftsmanship and artisan's skill authentically.
-4. If language is specified, craft the title, summary, and highlights appropriately.
-5. Return ONLY valid JSON with no additional text or markdown.
-
-Expected JSON format:
+Write compelling, authentic product descriptions that celebrate genuine handmade craftsmanship. Return valid JSON only.
+Expected JSON:
 {
   "title": "A compelling product title",
   "shortDescription": "2-3 sentence summary",
@@ -250,23 +374,93 @@ Write a description that is authentic and grounded in the provided data.`;
 }
 
 // ============================================
-// Factory
+// 3. Fallback Multi-Provider AI Service
+// Prioritizes Groq if available -> Falls back to Gemini
 // ============================================
 
-let aiServiceInstance: AIService | null = null;
+export class FallbackAIService implements AIService {
+  private groqProvider: GroqAIService | null = null;
+  private geminiProvider: GeminiAIService | null = null;
 
-export function getAIService(): AIService {
-  if (aiServiceInstance) return aiServiceInstance;
+  constructor() {
+    if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim()) {
+      try {
+        this.groqProvider = new GroqAIService();
+      } catch {}
+    }
+    if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()) {
+      try {
+        this.geminiProvider = new GeminiAIService();
+      } catch {}
+    }
+  }
 
-  try {
-    aiServiceInstance = new GeminiAIService();
-    return aiServiceInstance;
-  } catch (error) {
-    throw error;
+  async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
+    if (this.groqProvider) {
+      try {
+        return await this.groqProvider.extractArtisanProfile(transcript, language);
+      } catch (gErr) {
+        console.warn('[AI Pipeline] Groq extraction failed, falling back to Gemini:', gErr);
+      }
+    }
+
+    if (this.geminiProvider) {
+      return await this.geminiProvider.extractArtisanProfile(transcript, language);
+    }
+
+    throw new Error('No AI providers configured. Set GROQ_API_KEY or GEMINI_API_KEY.');
+  }
+
+  async extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction> {
+    if (this.groqProvider) {
+      try {
+        return await this.groqProvider.extractProductDetails(transcript, additionalText, language);
+      } catch (gErr) {
+        console.warn('[AI Pipeline] Groq product extraction failed, falling back to Gemini:', gErr);
+      }
+    }
+
+    if (this.geminiProvider) {
+      return await this.geminiProvider.extractProductDetails(transcript, additionalText, language);
+    }
+
+    throw new Error('No AI providers configured. Set GROQ_API_KEY or GEMINI_API_KEY.');
+  }
+
+  async generateProductDescription(params: {
+    artisanName: string;
+    artisanCraft?: string;
+    artisanLocation?: string;
+    productData: ProductExtraction;
+    transcript: string;
+    additionalText?: string;
+    language?: string;
+  }): Promise<ProductDescription> {
+    if (this.groqProvider) {
+      try {
+        return await this.groqProvider.generateProductDescription(params);
+      } catch (gErr) {
+        console.warn('[AI Pipeline] Groq description failed, falling back to Gemini:', gErr);
+      }
+    }
+
+    if (this.geminiProvider) {
+      return await this.geminiProvider.generateProductDescription(params);
+    }
+
+    throw new Error('No AI providers configured. Set GROQ_API_KEY or GEMINI_API_KEY.');
   }
 }
 
-// Check if AI is configured (useful for UI to show/hide features)
+// ============================================
+// Factory
+// ============================================
+
+export function getAIService(): AIService {
+  return new FallbackAIService();
+}
+
+// Check if any AI is configured
 export function isAIConfigured(): boolean {
-  return !!process.env.GEMINI_API_KEY;
+  return !!(process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY);
 }
