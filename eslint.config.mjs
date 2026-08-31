@@ -1,4 +1,7 @@
+import nextConfig from "eslint-config-next";
+
 export default [
+  ...nextConfig,
   {
     ignores: [
       ".next/**",
@@ -6,8 +9,6 @@ export default [
       "build/**",
       "node_modules/**",
       "next-env.d.ts",
-      "*.config.js",
-      "*.config.mjs",
     ],
   },
 ];
