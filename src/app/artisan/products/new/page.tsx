@@ -123,29 +123,74 @@ export default function NewProductPage() {
   const [error, setError] = useState('');
 
   // === LIVE CAMERA VIEWFINDER MODAL ===
+  const [cameraLoading, setCameraLoading] = useState(false);
+
+  // Hook to ensure video element always receives stream when modal opens
+  useEffect(() => {
+    if (showCameraModal && mediaStreamRef.current && videoRef.current) {
+      const video = videoRef.current;
+      video.srcObject = mediaStreamRef.current;
+      video.onloadedmetadata = () => {
+        video.play().catch(e => console.warn('Video playback warning:', e));
+      };
+    }
+  }, [showCameraModal]);
+
   const startCameraStream = async () => {
     setError('');
-    setShowCameraModal(true);
+    setCameraLoading(true);
+
+    // On mobile devices, native hardware camera capture delivers the highest quality
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile && cameraInputRef.current) {
+      setCameraLoading(false);
+      cameraInputRef.current.click();
+      return;
+    }
+
     try {
-      // First try environment facing camera, fallback to basic video stream for desktop/laptop webcams
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(t => t.stop());
+        mediaStreamRef.current = null;
+      }
+
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
         });
       } catch {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
       }
 
       mediaStreamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(e => console.warn('Play error:', e));
-      }
+      setShowCameraModal(true);
+      setCameraLoading(false);
+
+      // In case videoRef is already rendered
+      setTimeout(() => {
+        if (videoRef.current && mediaStreamRef.current) {
+          videoRef.current.srcObject = mediaStreamRef.current;
+          videoRef.current.play().catch(e => console.warn('Play error:', e));
+        }
+      }, 100);
     } catch (err) {
       console.warn('Camera stream error:', err);
+      setCameraLoading(false);
       setShowCameraModal(false);
-      setError('Camera access denied or unavailable. Please click "Choose File / Upload Image" to upload a photo.');
+      if (cameraInputRef.current) {
+        cameraInputRef.current.click();
+      } else {
+        setError('Camera permission denied or camera not found. Please click "Upload from Gallery" to pick a photo.');
+      }
     }
   };
 
@@ -526,18 +571,32 @@ export default function NewProductPage() {
 
         {/* LIVE CAMERA VIEWFINDER MODAL */}
         {showCameraModal && (
-          <div className="loading-overlay" style={{ background: 'rgba(0,0,0,0.9)', color: 'white' }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: '640px', padding: 'var(--space-4)' }}>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                style={{ width: '100%', borderRadius: 'var(--radius-xl)', border: '2px solid white' }}
-              />
-              <div style={{ display: 'flex', gap: 'var(--space-4)', marginTop: 'var(--space-4)', justifyContent: 'center' }}>
-                <button className="btn btn-success btn-lg" onClick={captureCameraSnapshot}>
+          <div className="loading-overlay" style={{ background: 'rgba(0,0,0,0.92)', color: 'white', zIndex: 1000 }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '640px', padding: 'var(--space-4)', textAlign: 'center' }}>
+              <h3 style={{ color: 'white', marginBottom: 'var(--space-3)' }}>{t.cameraModalTitle}</h3>
+              
+              <div style={{ position: 'relative', width: '100%', minHeight: '340px', background: '#111', borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  style={{ width: '100%', height: '100%', minHeight: '340px', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button className="btn btn-success btn-lg" style={{ minWidth: '160px' }} onClick={captureCameraSnapshot}>
                   {t.captureSnapshot}
+                </button>
+                <button
+                  className="btn btn-secondary btn-lg"
+                  onClick={() => {
+                    stopCameraStream();
+                    cameraInputRef.current?.click();
+                  }}
+                >
+                  📁 Choose File / Photo
                 </button>
                 <button className="btn btn-danger btn-lg" onClick={stopCameraStream}>
                   ✖ {t.closeCamera}
