@@ -366,7 +366,7 @@ export default function OnboardingPage() {
               }}
               style={{ flex: 1 }}
             >
-              🔄 Re-record
+              {t.rerecordBtn}
             </button>
             <button
               className="btn btn-success btn-lg"

@@ -33,6 +33,10 @@ export interface TranslationDictionary {
   processingAudio: string;
   preferToType: string;
   typeManually: string;
+  optionalTypedDetails: string;
+  addExtraDetailsPlaceholder: string;
+  proceedWithTypedDetails: string;
+  rerecordBtn: string;
   reviewProfileTitle: string;
   reviewProfileSubtitle: string;
   nameLabel: string;
@@ -49,6 +53,7 @@ export interface TranslationDictionary {
 
   // Product Creation
   productUploadTitle: string;
+  productCreationWizardSubtitle: string;
   photoStepTitle: string;
   photoStepSubtitle: string;
   takePhotoCamera: string;
@@ -82,6 +87,36 @@ export interface TranslationDictionary {
   minOrderQtyLabel: string;
   publishProductBtn: string;
   productSavedSuccess: string;
+
+  // Deterministic Pricing & Platform Comparison
+  deterministicPricingTitle: string;
+  deterministicPricingSubtitle: string;
+  materialCostInputLabel: string;
+  labourCostCalcLabel: string;
+  directAmountBtn: string;
+  byHoursBtn: string;
+  byDaysBtn: string;
+  hourlyRateLabel: string;
+  dailyRateLabel: string;
+  otherCostsLabel: string;
+  artisanMinMarginLabel: string;
+  artisanMaxMarginLabel: string;
+  calcSellingPriceBtn: string;
+  finalReviewTitle: string;
+  finalReviewSubtitle: string;
+  livePlatformComparisonTitle: string;
+  realtimeEcommerceBenchmark: string;
+  marketInsightLabel: string;
+  yourProductionCostLabel: string;
+  onlineRetailAvgLabel: string;
+  directRecommendedPriceLabel: string;
+  yourCleanProfitLabel: string;
+  zeroMiddlemanCuts: string;
+  productTitleFieldLabel: string;
+  yourDirectSellingPriceLabel: string;
+  editCostsBtn: string;
+  editDetailsBtn: string;
+  publishToMarketplaceBtn: string;
 
   // Dashboard & Stock
   welcomeBack: string;
@@ -131,6 +166,10 @@ export const translations: Record<string, TranslationDictionary> = {
     processingAudio: 'Processing your voice with AI...',
     preferToType: 'Prefer to type? Enter manually',
     typeManually: 'Enter Profile Details Manually',
+    optionalTypedDetails: 'Optional Typed Details',
+    addExtraDetailsPlaceholder: 'Add any extra details manually here...',
+    proceedWithTypedDetails: 'Proceed with Typed Details →',
+    rerecordBtn: '🔄 Re-record',
     reviewProfileTitle: 'Review Your Artisan Profile',
     reviewProfileSubtitle: 'We extracted these details from your voice. Please review and make any corrections.',
     nameLabel: 'Full Name',
@@ -146,6 +185,7 @@ export const translations: Record<string, TranslationDictionary> = {
     confirmSaveProfile: 'Save & Go to Dashboard',
 
     productUploadTitle: 'Add New Handcrafted Product',
+    productCreationWizardSubtitle: 'AI-assisted product creation wizard',
     photoStepTitle: 'Take or Upload Product Photos',
     photoStepSubtitle: 'Take a clear, well-lit photo of your handicraft item against a simple background.',
     takePhotoCamera: '📸 Take Photo with Camera',
@@ -179,6 +219,35 @@ export const translations: Record<string, TranslationDictionary> = {
     minOrderQtyLabel: 'Minimum Order Quantity (MOQ for B2B)',
     publishProductBtn: '🚀 Publish Product to Marketplace',
     productSavedSuccess: 'Product published successfully!',
+
+    deterministicPricingTitle: 'Deterministic Pricing Engine',
+    deterministicPricingSubtitle: 'Enter actual production costs. Price is calculated deterministically.',
+    materialCostInputLabel: 'Material Cost (₹)',
+    labourCostCalcLabel: 'Labour Cost Calculation',
+    directAmountBtn: 'Direct Amount',
+    byHoursBtn: 'By Hours',
+    byDaysBtn: 'By Days',
+    hourlyRateLabel: 'Hourly Rate (₹/hr)',
+    dailyRateLabel: 'Daily Rate (₹/day)',
+    otherCostsLabel: 'Other Production Costs (₹)',
+    artisanMinMarginLabel: 'Artisan Minimum Profit Margin (%)',
+    artisanMaxMarginLabel: 'Artisan Maximum Profit Margin (%)',
+    calcSellingPriceBtn: 'Calculate Selling Price & Market Comparison →',
+    finalReviewTitle: 'Final Product & Pricing Review',
+    finalReviewSubtitle: 'Transparent cost analysis compared against live online retail marketplaces.',
+    livePlatformComparisonTitle: '🌐 Live Online Platform Comparison',
+    realtimeEcommerceBenchmark: 'Real-Time E-Commerce Benchmark',
+    marketInsightLabel: 'Market Insight:',
+    yourProductionCostLabel: 'Your Production Cost:',
+    onlineRetailAvgLabel: 'Online Retail Average:',
+    directRecommendedPriceLabel: 'Direct Recommended Fair Price:',
+    yourCleanProfitLabel: 'Your Clean Profit / Unit:',
+    zeroMiddlemanCuts: '(Zero middleman cuts!)',
+    productTitleFieldLabel: 'Product Title',
+    yourDirectSellingPriceLabel: 'Your Direct Selling Price (₹)',
+    editCostsBtn: '← Edit Costs',
+    editDetailsBtn: '← Edit Details',
+    publishToMarketplaceBtn: '🚀 Publish Product to Marketplace',
 
     welcomeBack: 'Welcome back,',
     artisanIdBadge: 'Artisan ID',
@@ -226,6 +295,10 @@ export const translations: Record<string, TranslationDictionary> = {
     processingAudio: 'உங்கள் குரலை AI மூலம் ஆராய்கிறது...',
     preferToType: 'டைப் செய்ய விரும்புகிறீர்களா? கைமுறையாக உள்ளிடவும்',
     typeManually: 'சுயவிவர விவரங்களை கைமுறையாக உள்ளிடவும்',
+    optionalTypedDetails: 'விருப்பப்படியான கூடுதல் விவரங்கள்',
+    addExtraDetailsPlaceholder: 'கூடுதல் விவரங்களை இங்கே கைமுறையாக உள்ளிடலாம்...',
+    proceedWithTypedDetails: 'உள்ளிட்ட விவரங்களுடன் தொடரவும் →',
+    rerecordBtn: '🔄 மீண்டும் பதிவு செய்யவும்',
     reviewProfileTitle: 'உங்கள் சுயவிவரத்தை சரிபார்க்கவும்',
     reviewProfileSubtitle: 'உங்கள் குரல் பதிவிலிருந்து இந்த விவரங்களை பிரித்தெடுத்துள்ளோம். சரிபார்த்து திருத்தங்கள் செய்யவும்.',
     nameLabel: 'முழு பெயர்',
@@ -241,6 +314,7 @@ export const translations: Record<string, TranslationDictionary> = {
     confirmSaveProfile: 'சேமித்து முகப்புக்குச் செல்லவும்',
 
     productUploadTitle: 'புதிய கைவினைப் பொருளைச் சேர்க்கவும்',
+    productCreationWizardSubtitle: 'AI உதவியுடன் தயாரிப்பு சேர்க்கும் வழிகாட்டி',
     photoStepTitle: 'பொருளின் புகைப்படத்தை எடுக்கவும் அல்லது பதிவேற்றவும்',
     photoStepSubtitle: 'நல்ல வெளிச்சத்தில் உங்கள் கைவினைப் பொருளைத் தெளிவாகப் படம் பிடிக்கவும்.',
     takePhotoCamera: '📸 கேமரா மூலம் புகைப்படம் எடு',
@@ -274,6 +348,35 @@ export const translations: Record<string, TranslationDictionary> = {
     minOrderQtyLabel: 'குறைந்தபட்ச ஆர்டர் அளவு (MOQ)',
     publishProductBtn: '🚀 சந்தையில் பொருளை வெளியிடவும்',
     productSavedSuccess: 'பொருள் வெற்றிகரமாக வெளியிடப்பட்டது!',
+
+    deterministicPricingTitle: 'உண்மையான உற்பத்தி செலவு & நியாய விலை கணக்கீடு',
+    deterministicPricingSubtitle: 'உண்மையான செலவுகளை உள்ளிடவும். விற்பனை விலை தானாகக் கணக்கிடப்படும்.',
+    materialCostInputLabel: 'மூலப்பொருள் செலவு (₹)',
+    labourCostCalcLabel: 'கூலி / உழைப்புச் செலவு கணக்கீடு',
+    directAmountBtn: 'நேரடித் தொகை',
+    byHoursBtn: 'மணிநேர அடிப்படையில்',
+    byDaysBtn: 'நாட்களின் அடிப்படையில்',
+    hourlyRateLabel: 'ஒரு மணி நேர ஊதியம் (₹/மணி)',
+    dailyRateLabel: 'ஒரு நாள் ஊதியம் (₹/நாள்)',
+    otherCostsLabel: 'மற்ற உற்பத்திச் செலவுகள் (₹)',
+    artisanMinMarginLabel: 'குறைந்தபட்ச லாப வரம்பு (%)',
+    artisanMaxMarginLabel: 'அதிகபட்ச லாப வரம்பு (%)',
+    calcSellingPriceBtn: 'விற்பனை விலை & சந்தை ஒப்பீட்டைக் கணக்கிடவும் →',
+    finalReviewTitle: 'இறுதி தயாரிப்பு & விலை மதிப்பாய்வு',
+    finalReviewSubtitle: 'நேரடி இணைய சந்தை விலைகளுடன் ஒப்பிடப்பட்ட வெளிப்படையான செலவு பகுப்பாய்வு.',
+    livePlatformComparisonTitle: '🌐 நேரடி ஆன்லைன் சந்தை விலை ஒப்பீடு',
+    realtimeEcommerceBenchmark: 'நிகழ்நேர இணைய சந்தை மதிப்பீடு',
+    marketInsightLabel: 'சந்தை நுண்ணறிவு:',
+    yourProductionCostLabel: 'உங்கள் உற்பத்திச் செலவு:',
+    onlineRetailAvgLabel: 'ஆன்லைன் சில்லறை சராசரி விலை:',
+    directRecommendedPriceLabel: 'நேரடி பரிந்துரைக்கப்பட்ட நியாய விலை:',
+    yourCleanProfitLabel: 'உங்கள் நிகர லாபம் / ஒரு பொருளுக்கு:',
+    zeroMiddlemanCuts: '(இடைத்தரகர் கமிஷன் முற்றிலும் இல்லை!)',
+    productTitleFieldLabel: 'தயாரிப்பு தலைப்பு / பெயர்',
+    yourDirectSellingPriceLabel: 'உங்கள் நேரடி விற்பனை விலை (₹)',
+    editCostsBtn: '← செலவுகளைத் திருத்தவும்',
+    editDetailsBtn: '← விவரங்களைத் திருத்தவும்',
+    publishToMarketplaceBtn: '🚀 சந்தையில் பொருளை வெளியிடவும்',
 
     welcomeBack: 'மீண்டும் நல்வரவு,',
     artisanIdBadge: 'கைவினைஞர் ஐடி',
@@ -321,6 +424,10 @@ export const translations: Record<string, TranslationDictionary> = {
     processingAudio: 'AI आपकी आवाज को प्रोसेस कर रहा है...',
     preferToType: 'टाइप करना पसंद करते हैं? मैन्युअल दर्ज करें',
     typeManually: 'प्रोफ़ाइल विवरण मैन्युअल दर्ज करें',
+    optionalTypedDetails: 'वैकल्पिक लिखित विवरण',
+    addExtraDetailsPlaceholder: 'यहाँ अतिरिक्त विवरण दर्ज करें...',
+    proceedWithTypedDetails: 'लिखित विवरण के साथ आगे बढ़ें →',
+    rerecordBtn: '🔄 पुनः रिकॉर्ड करें',
     reviewProfileTitle: 'अपनी प्रोफ़ाइल की समीक्षा करें',
     reviewProfileSubtitle: 'हमने आपकी आवाज से ये विवरण निकाले हैं। कृपया समीक्षा करें और आवश्यक सुधार करें।',
     nameLabel: 'पूरा नाम',
@@ -336,6 +443,7 @@ export const translations: Record<string, TranslationDictionary> = {
     confirmSaveProfile: 'सहेजें और डैशबोर्ड पर जाएं',
 
     productUploadTitle: 'नया हस्तशिल्प उत्पाद जोड़ें',
+    productCreationWizardSubtitle: 'AI-सहायक उत्पाद निर्माण विज़ार्ड',
     photoStepTitle: 'उत्पाद की तस्वीर लें या अपलोड करें',
     photoStepSubtitle: 'अच्छी रोशनी में अपने हस्तशिल्प उत्पाद की साफ तस्वीर लें।',
     takePhotoCamera: '📸 कैमरे से फोटो खींचें',
@@ -369,6 +477,35 @@ export const translations: Record<string, TranslationDictionary> = {
     minOrderQtyLabel: 'न्यूनतम ऑर्डर मात्रा (MOQ)',
     publishProductBtn: '🚀 बाज़ार में उत्पाद प्रकाशित करें',
     productSavedSuccess: 'उत्पाद सफलतापूर्वक प्रकाशित किया गया!',
+
+    deterministicPricingTitle: 'लागत और उचित मूल्य निर्धारण',
+    deterministicPricingSubtitle: 'वास्तविक उत्पादन लागत दर्ज करें। मूल्य पारदर्शी रूप से तय किया जाएगा।',
+    materialCostInputLabel: 'कच्चे माल की लागत (₹)',
+    labourCostCalcLabel: 'श्रम लागत गणना',
+    directAmountBtn: 'सीधी राशि',
+    byHoursBtn: 'घंटे के अनुसार',
+    byDaysBtn: 'दिनों के अनुसार',
+    hourlyRateLabel: 'प्रति घंटा दर (₹/घंटा)',
+    dailyRateLabel: 'प्रति दिन दर (₹/दिन)',
+    otherCostsLabel: 'अन्य उत्पादन लागत (₹)',
+    artisanMinMarginLabel: 'कारीगर न्यूनतम लाभ मार्जिन (%)',
+    artisanMaxMarginLabel: 'कारीगर अधिकतम लाभ मार्जिन (%)',
+    calcSellingPriceBtn: 'विक्रय मूल्य और बाज़ार तुलना की गणना करें →',
+    finalReviewTitle: 'अंतिम उत्पाद और मूल्य समीक्षा',
+    finalReviewSubtitle: 'ऑनलाइन खुदरा बाज़ारों के साथ पारदर्शी लागत विश्लेषण।',
+    livePlatformComparisonTitle: '🌐 लाइव ऑनलाइन प्लेटफ़ॉर्म मूल्य तुलना',
+    realtimeEcommerceBenchmark: 'रीयल-टाइम ई-कॉमर्स बेंचमार्क',
+    marketInsightLabel: 'बाज़ार विश्लेषण:',
+    yourProductionCostLabel: 'आपकी उत्पादन लागत:',
+    onlineRetailAvgLabel: 'ऑनलाइन खुदरा औसत:',
+    directRecommendedPriceLabel: 'प्रत्यक्ष अनुशंसित उचित मूल्य:',
+    yourCleanProfitLabel: 'आपका शुद्ध लाभ / प्रति यूनिट:',
+    zeroMiddlemanCuts: '(बिचौलियों का कोई कमीशन नहीं!)',
+    productTitleFieldLabel: 'उत्पाद शीर्षक / नाम',
+    yourDirectSellingPriceLabel: 'आपका प्रत्यक्ष विक्रय मूल्य (₹)',
+    editCostsBtn: '← लागत संपादित करें',
+    editDetailsBtn: '← विवरण संपादित करें',
+    publishToMarketplaceBtn: '🚀 बाज़ार में उत्पाद प्रकाशित करें',
 
     welcomeBack: 'वापसी पर स्वागत है,',
     artisanIdBadge: 'कारीगर आईडी',
@@ -416,6 +553,10 @@ export const translations: Record<string, TranslationDictionary> = {
     processingAudio: 'AI మీ స్వరాన్ని విశ్లేషిస్తోంది...',
     preferToType: 'టైప్ చేయాలనుకుంటున్నారా? మాన్యువల్‌గా నమోదు చేయండి',
     typeManually: 'వివరాలను మాన్యువల్‌గా నమోదు చేయండి',
+    optionalTypedDetails: 'ఐచ్ఛిక వ్రాతపూర్వక వివరాలు',
+    addExtraDetailsPlaceholder: 'అదనపు వివరాలను ఇక్కడ నమోదు చేయండి...',
+    proceedWithTypedDetails: 'వ్రాతపూర్వక వివరాలతో కొనసాగించండి →',
+    rerecordBtn: '🔄 మళ్లీ రికార్డ్ చేయండి',
     reviewProfileTitle: 'మీ ప్రొఫైల్‌ను సమీక్షించండి',
     reviewProfileSubtitle: 'మేము మీ స్వర రికార్డు నుండి ఈ వివరాలను సేకరించాము.',
     nameLabel: 'పూర్తి పేరు',
@@ -431,6 +572,7 @@ export const translations: Record<string, TranslationDictionary> = {
     confirmSaveProfile: 'సేవ్ చేసి డ్యాష్‌బోర్డ్‌కు వెళ్లండి',
 
     productUploadTitle: 'కొత్త ఉత్పత్తిని జోడించండి',
+    productCreationWizardSubtitle: 'AI-సహాయక ఉత్పత్తి తయారీ విజార్డ్',
     photoStepTitle: 'ఉత్పత్తి ఫోటో తీయండి లేదా అప్‌లోడ్ చేయండి',
     photoStepSubtitle: 'మంచి వెలుతురులో మీ ఉత్పత్తి యొక్క స్పష్టమైన ఫోటో తీయండి.',
     takePhotoCamera: '📸 కెమెరాతో ఫోటో తీయండి',
@@ -448,39 +590,68 @@ export const translations: Record<string, TranslationDictionary> = {
     productTitleLabel: 'ఉత్పత్తి పేరు',
     categoryLabel: 'వర్గం (Category)',
     materialLabel: 'ఉపయోగించిన పదార్థం',
-    quantityLabel: 'అందుబాటులో ఉన్న స్టాక్',
-    productionTimeLabel: 'తయారీ సమయం',
-    colorsLabel: 'రంగులు',
-    dimensionsLabel: 'కొలతలు / పరిమాణం',
-    generatingDescription: 'వివరణ రూపొందించబడుతోంది...',
-    pricingTitle: 'ధర మరియు లాభం గణన',
-    pricingSubtitle: 'చేతివృత్తి కళాకారునికి న్యాయమైన లాభాన్ని అందించే AI సూచించిన అమ్మకపు ధర.',
-    costBreakdownTitle: 'ఖర్చు వివరాలు',
+    quantityLabel: 'అందుబాటులో ఉన్న పరిమాణం',
+    productionTimeLabel: 'తయారీకి పట్టే సమయం',
+    colorsLabel: 'అందుబాటులో ఉన్న రంగులు',
+    dimensionsLabel: 'కొలతలు / బరువు',
+    generatingDescription: 'ఉత్పత్తి వివరణ రూపొందిస్తోంది...',
+    pricingTitle: 'పారదర్శక ధర మరియు ఖర్చు గణన',
+    pricingSubtitle: 'చేతివృత్తుల కళాకారులకు న్యాయమైన లాభాన్ని అందించే సిఫార్సు చేసిన అమ్మకపు ధర.',
+    costBreakdownTitle: 'ఖర్చుల వివరాలు',
     materialCost: 'ముడి పదార్థాల ఖర్చు',
-    labourCost: 'శ్రమ మరియు నైపుణ్యం విలువ',
+    labourCost: 'కళాకారుడి శ్రమ మరియు సమయ విలువ',
     totalCostLabel: 'మొత్తం ఉత్పత్తి ఖర్చు',
-    recommendedPriceLabel: 'సిఫార్సు చేయబడిన అమ్మకపు ధర',
+    recommendedPriceLabel: 'సిఫార్సు చేయబడిన ధర',
     currentStockLabel: 'అందుబాటులో ఉన్న స్టాక్',
     minOrderQtyLabel: 'కనిష్ట ఆర్డర్ పరిమాణం (MOQ)',
-    publishProductBtn: '🚀 మార్కెట్‌లో ఉత్పత్తిని ప్రచురించండి',
+    publishProductBtn: '🚀 మార్కెట్లో ఉత్పత్తిని ప్రచురించండి',
     productSavedSuccess: 'ఉత్పత్తి విజయవంతంగా ప్రచురించబడింది!',
 
+    deterministicPricingTitle: 'ధర మరియు ఖర్చు గణన ఇంజిన్',
+    deterministicPricingSubtitle: 'వాస్తవ ఉత్పత్తి ఖర్చులను నమోదు చేయండి. ధర పారదర్శకంగా లెక్కించబడుతుంది.',
+    materialCostInputLabel: 'ముడి పదార్థాల ఖర్చు (₹)',
+    labourCostCalcLabel: 'శ్రమ ఖర్చు గణన',
+    directAmountBtn: 'ప్రత్యక్ష మొత్తం',
+    byHoursBtn: 'గంటల వారీగా',
+    byDaysBtn: 'రోజుల వారీగా',
+    hourlyRateLabel: 'గంటకు రేటు (₹/గంట)',
+    dailyRateLabel: 'రోజుకు రేటు (₹/రోజు)',
+    otherCostsLabel: 'ఇతర ఉత్పత్తి ఖర్చులు (₹)',
+    artisanMinMarginLabel: 'కనీస లాభ పరిమితి (%)',
+    artisanMaxMarginLabel: 'గరిష్ట లాభ పరిమితి (%)',
+    calcSellingPriceBtn: 'అమ్మకపు ధర & మార్కెట్ పోలికను లెక్కించండి →',
+    finalReviewTitle: 'తుది ఉత్పత్తి & ధర సమీక్ష',
+    finalReviewSubtitle: 'ఆన్‌లైన్ రిటైల్ మార్కెట్‌లతో పోల్చిన పారదర్శక విశ్లేషణ.',
+    livePlatformComparisonTitle: '🌐 లైవ్ ఆన్‌లైన్ ప్లాట్‌ఫారమ్ ధరల పోలిక',
+    realtimeEcommerceBenchmark: 'రియల్-టైమ్ ఈ-కామర్స్ బెంచ్‌మార్క్',
+    marketInsightLabel: 'మార్కెట్ విశ్లేషణ:',
+    yourProductionCostLabel: 'మీ ఉత్పత్తి ఖర్చు:',
+    onlineRetailAvgLabel: 'ఆన్‌లైన్ రిటైల్ సగటు:',
+    directRecommendedPriceLabel: 'ప్రత్యక్ష సిఫార్సు చేయబడిన న్యాయమైన ధర:',
+    yourCleanProfitLabel: 'మీ నికర లాభం / యూనిట్‌కు:',
+    zeroMiddlemanCuts: '(మధ్యవర్తి కమీషన్లు లేవు!)',
+    productTitleFieldLabel: 'ఉత్పత్తి శీర్షిక / పేరు',
+    yourDirectSellingPriceLabel: 'మీ ప్రత్యక్ష అమ్మకపు ధర (₹)',
+    editCostsBtn: '← ఖర్చులను సవరించండి',
+    editDetailsBtn: '← వివరాలను సవరించండి',
+    publishToMarketplaceBtn: '🚀 మార్కెట్లో ఉత్పత్తిని ప్రచురించండి',
+
     welcomeBack: 'తిరిగి స్వాగతం,',
-    artisanIdBadge: 'కళాకారుడు ID',
+    artisanIdBadge: 'కళాకారుడి ఐడి',
     showQRBtn: '📱 QR కోడ్ చూపించు',
     hideQRBtn: 'QR కోడ్ దాచు',
-    downloadQRBtn: '📥 QR చిత్రం డౌన్‌లోడ్ చేయండి',
+    downloadQRBtn: '📥 QR ఇమేజ్ డౌన్‌లోడ్ చేయండి',
     previewProfileBtn: '🔗 ప్రొఫైల్ ప్రివ్యూ',
     qrScanInstruction: 'ప్రొఫైల్ మరియు ఉత్పత్తులను చూడటానికి స్కాన్ చేయండి',
     totalProducts: 'మొత్తం ఉత్పత్తులు',
-    published: 'ప్రచురించబడినవి',
+    published: 'ప్రచురించినవి',
     drafts: 'డ్రాఫ్ట్‌లు',
-    addProductBtn: '➕ ఉత్పత్తిని జోడించు',
-    viewOrdersBtn: '📦 ఆర్డర్‌లను చూడండి',
+    addProductBtn: '➕ ఉత్పత్తిని జోడించండి',
+    viewOrdersBtn: '📦 ఆర్డర్లు చూడండి',
     updateStockModalTitle: '📦 స్టాక్ అప్‌డేట్ చేయండి',
     quickUpdateStock: '📦 స్టాక్ అప్‌డేట్',
-    inStockBadge: 'స్టాక్ ఉంది',
-    outOfStockBadge: 'స్టాక్ అయిపోయింది',
+    inStockBadge: 'స్టాక్‌లో ఉంది',
+    outOfStockBadge: 'స్టాక్ ముగిసింది',
   },
 
   // === KANNADA (ಕನ್ನಡ) ===
@@ -489,99 +660,133 @@ export const translations: Record<string, TranslationDictionary> = {
     marketplace: 'ಮಾರುಕಟ್ಟೆ',
     dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
     orders: 'ಆರ್ಡರ್‌ಗಳು',
-    notifications: 'ಅಧಿಸೂಚನೆಗಳು',
-    logout: 'ಲಾಗ್ ಔಟ್',
+    notifications: 'ಸೂಚನೆಗಳು',
+    logout: 'ಲಾಗ್‌ಔಟ್',
     save: 'ಉಳಿಸಿ',
     cancel: 'ರದ್ದುಮಾಡಿ',
     loading: 'ಲೋಡ್ ಆಗುತ್ತಿದೆ...',
     continue: 'ಮುಂದುವರಿಯಿರಿ',
     back: 'ಹಿಂದಕ್ಕೆ',
     submit: 'ಸಲ್ಲಿಸಿ',
-    edit: 'ತಿದ್ದು',
+    edit: 'ತಿದ್ದುಪಡಿ',
 
     chooseLanguageTitle: 'ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ',
-    chooseLanguageSubtitle: 'ನಿಮಗೆ ಹೆಚ್ಚು ಅನುಕೂಲಕರವಾದ ಭಾಷೆಯನ್ನು ಆರಿಸಿ. ಎಲ್ಲಾ ಧ್ವನಿ ಮತ್ತು ಸೂಚನೆಗಳು ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ.',
+    chooseLanguageSubtitle: 'ನಿಮಗೆ ಸುಲಭವಾದ ಭಾಷೆಯನ್ನು ಆರಿಸಿ. ಎಲ್ಲಾ ಧ್ವನಿ ವೈಶಿಷ್ಟ್ಯಗಳು ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ.',
 
     onboardingTitle: 'ನಿಮ್ಮ ಬಗ್ಗೆ ನಮಗೆ ತಿಳಿಸಿ',
-    onboardingSubtitle: 'ಮೈಕ್ರೊಫೋನ್ ಒತ್ತಿ ಸಹಜವಾಗಿ ಮಾತನಾಡಿ. ನಿಮ್ಮ ಹೆಸರು, ಊರು, ನೀವು ಮಾಡುವ ಕಲೆ ಮತ್ತು ಅನುಭವವನ್ನು ತಿಳಿಸಿ.',
-    onboardingExample: 'ಉದಾಹರಣೆ: "ನನ್ನ ಹೆಸರು ಲಕ್ಷ್ಮಿ. ನಾನು ಇಳಕಲ್ ನಿಂದ ಬಂದಿದ್ದೇನೆ. ನಾನು ಕೈಮಗ್ಗ ಸೀರೆಗಳನ್ನು ನೇಯುತ್ತೇನೆ."',
-    tapToRecord: 'ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ',
-    recordingActive: 'ಆಲಿಸುತ್ತಿದೆ... ಮುಕ್ತವಾಗಿ ಮಾತನಾಡಿ',
-    tapToStop: 'ರೆಕಾರ್ಡಿಂಗ್ ಮುಗಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ',
-    processingAudio: 'AI ನಿಮ್ಮ ಧ್ವನಿಯನ್ನು ಪರಿಷ್ಕರಿಸುತ್ತಿದೆ...',
-    preferToType: 'ಟೈಪ್ ಮಾಡಲು ಬಯಸುವಿರಾ?',
+    onboardingSubtitle: 'ಮೈಕ್ರೊಫೋನ್ ಒತ್ತಿ ಮಾತನಾಡಿ. ನಿಮ್ಮ ಹೆಸರು, ಊರು, ನೀವು ಮಾಡುವ ಕೆಲಸ ಮತ್ತು ಅನುಭವವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ.',
+    onboardingExample: 'ಉದಾಹರಣೆ: "ನನ್ನ ಹೆಸರು ಮಂಜುನಾಥ್. ನಾನು ಚನ್ನಪಟ್ಟಣದಿಂದ ಬಂದಿದ್ದೇನೆ. ನಾನು ಮರದ ಆಟಿಕೆಗಳನ್ನು ತಯಾರಿಸುತ್ತೇನೆ. ನನಗೆ 15 ವರ್ಷಗಳ ಅನುಭವವಿದೆ."',
+    tapToRecord: 'ರೆಕಾರ್ಡಿಂಗ್ ಪ್ರಾರಂಭಿಸಲು ಸ್ಪರ್ಶಿಸಿ',
+    recordingActive: 'ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಮಾತನಾಡಿ',
+    tapToStop: 'ರೆಕಾರ್ಡಿಂಗ್ ಮುಗಿಸಲು ಸ್ಪರ್ಶಿಸಿ',
+    processingAudio: 'AI ನಿಮ್ಮ ಧ್ವನಿಯನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುತ್ತಿದೆ...',
+    preferToType: 'ಟೈಪ್ ಮಾಡಲು ಬಯಸುವಿರಾ? ಹಸ್ತಚಾಲಿತವಾಗಿ ನಮೂದಿಸಿ',
     typeManually: 'ವಿವರಗಳನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ನಮೂದಿಸಿ',
+    optionalTypedDetails: 'ಐಚ್ಛಿಕ ಲಿಖಿತ ವಿವರಗಳು',
+    addExtraDetailsPlaceholder: 'ಹೆಚ್ಚುವರಿ ವಿವರಗಳನ್ನು ಇಲ್ಲಿ ನಮೂದಿಸಿ...',
+    proceedWithTypedDetails: 'ಲಿಖಿತ ವಿವರಗಳೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ →',
+    rerecordBtn: '🔄 ಮತ್ತೆ ರೆಕಾರ್ಡ್ ಮಾಡಿ',
     reviewProfileTitle: 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಪರಿಶೀಲಿಸಿ',
-    reviewProfileSubtitle: 'ನಿಮ್ಮ ಧ್ವನಿಯಿಂದ ನಾವು ಈ ವಿವರಗಳನ್ನು ಪಡೆದುಕೊಂಡಿದ್ದೇವೆ.',
+    reviewProfileSubtitle: 'ನಿಮ್ಮ ಧ್ವನಿ ಮುದ್ರಣದಿಂದ ಈ ವಿವರಗಳನ್ನು ಹೊರತೆಗೆಯಲಾಗಿದೆ.',
     nameLabel: 'ಪೂರ್ಣ ಹೆಸರು',
     locationLabel: 'ಗ್ರಾಮ / ನಗರ ಮತ್ತು ರಾಜ್ಯ',
-    craftTypeLabel: 'ಮುಖ್ಯ ಕಲೆ ಅಥವಾ ಕರಕುಶಲ',
+    craftTypeLabel: 'ಮುಖ್ಯ ಕರಕುಶಲ ಕಲೆ',
     experienceLabel: 'ಅನುಭವದ ವರ್ಷಗಳು',
     storyLabel: 'ನಿಮ್ಮ ಕರಕುಶಲ ಪರಂಪರೆಯ ಕಥೆ',
-    namePlaceholder: 'ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರನ್ನು ನಮೂದಿಸಿ',
+    namePlaceholder: 'ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು ನಮೂದಿಸಿ',
     locationPlaceholder: 'ಉದಾ: ಮೈಸೂರು, ಕರ್ನಾಟಕ',
-    craftPlaceholder: 'ಉದಾ: ಚನ್ನಪಟ್ಟಣದ ಬೊಂಬೆಗಳು, ಕೈಮಗ್ಗ',
-    experiencePlaceholder: 'ಉದಾ: 15 ವರ್ಷಗಳು',
-    storyPlaceholder: 'ನಿಮ್ಮ ಕಲೆಯ ಇತಿಹಾಸವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ...',
-    confirmSaveProfile: 'ಉಳಿಸಿ ಮತ್ತು ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
+    craftPlaceholder: 'ಉದಾ: ಚನ್ನಪಟ್ಟಣ ಮರದ ಆಟಿಕೆಗಳು',
+    experiencePlaceholder: 'ಉದಾ: 10 ವರ್ಷಗಳು',
+    storyPlaceholder: 'ನಿಮ್ಮ ಕುಟುಂಬದ ಕಲಾ ಪರಂಪರೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ...',
+    confirmSaveProfile: 'ಉಳಿಸಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
 
-    productUploadTitle: 'ಹೊಸ ಉತ್ಪನ್ನವನ್ನು ಸೇರಿಸಿ',
-    photoStepTitle: 'ಉತ್ಪನ್ನದ ಫೋಟೋ ತೆಗೆಯಿರಿ ಅಥವಾ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ',
-    photoStepSubtitle: 'ಉತ್ತಮ ಬೆಳಕಿನಲ್ಲಿ ನಿಮ್ಮ ಕರಕುಶಲ ವಸ್ತುವಿನ ಸ್ಪಷ್ಟ ಫೋಟೋ ತೆಗೆದುಕೊಳ್ಳಿ.',
-    takePhotoCamera: '📸 ಕ್ಯಾಮೆರಾದಿಂದ ಫೋಟೋ ತೆಗೆಯಿರಿ',
+    productUploadTitle: 'ಹೊಸ ಕರಕುಶಲ ಉತ್ಪನ್ನವನ್ನು ಸೇರಿಸಿ',
+    productCreationWizardSubtitle: 'AI-ಸಹಾಯದ ಉತ್ಪನ್ನ ಸೇರ್ಪಡೆ ವಿಝಾರ್ಡ್',
+    photoStepTitle: 'ಉತ್ಪನ್ನದ ಫೋಟೋ ತೆಗೆದುಕೊಳ್ಳಿ ಅಥವಾ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ',
+    photoStepSubtitle: 'ಉತ್ತಮ ಬೆಳಕಿನಲ್ಲಿ ನಿಮ್ಮ ಉತ್ಪನ್ನದ ಸ್ಪಷ್ಟ ಚಿತ್ರವನ್ನು ತೆಗೆಯಿರಿ.',
+    takePhotoCamera: '📸 ಕ್ಯಾಮೆರಾ ಮೂಲಕ ಫೋಟೋ ತೆಗೆಯಿರಿ',
     uploadFromGallery: '🖼️ ಗ್ಯಾಲರಿಯಿಂದ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ',
-    cameraModalTitle: 'ಲೈವ್ ಕ್ಯಾಮೆರಾ',
-    captureSnapshot: '📸 ಫೋಟೋ ಸೆರೆಹಿಡಿಯಿರಿ',
+    cameraModalTitle: 'ಲೈವ್ ಕ್ಯಾಮೆರಾ ನೋಟ',
+    captureSnapshot: '📸 ಫೋಟೋ ತೆಗೆಯಿರಿ',
     closeCamera: 'ಕ್ಯಾಮೆರಾ ಮುಚ್ಚಿ',
-    enhancingPhoto: '✨ AI ಮೂಲಕ ಫೋಟೋ ಸರಿಪಡಿಸಲಾಗುತ್ತಿದೆ...',
-    voiceStepTitle: 'ವಸ್ತುವಿನ ವಿವರಗಳನ್ನು ಧ್ವನಿಯ ಮೂಲಕ ವಿವರಿಸಿ',
-    voiceStepSubtitle: 'ಮೈಕ್ ಒತ್ತಿ ವಸ್ತುವಿನ ತಯಾರಿಕೆ, ಅಳತೆ, ಬಣ್ಣ ಮತ್ತು ಲಭ್ಯವಿರುವ ಸ್ಟಾಕ್ ಬಗ್ಗೆ ಮಾತನಾಡಿ.',
-    voicePromptGuide: 'ಧ್ವನಿಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು:',
-    voicePromptExample: 'ಉದಾಹರಣೆ: "ಇದು ಕೈಯಿಂದ ಮಾಡಿದ ಮಣ್ಣಿನ ಮಡಕೆ. 10 ವಸ್ತುಗಳು ಲಭ್ಯವಿವೆ."',
+    enhancingPhoto: '✨ AI ನೊಂದಿಗೆ ಫೋಟೋ ಗುಣಮಟ್ಟ ಸುಧಾರಿಸಲಾಗುತ್ತಿದೆ...',
+    voiceStepTitle: 'ಉತ್ಪನ್ನದ ವಿವರಗಳನ್ನು ಧ್ವನಿಯ ಮೂಲಕ ವಿವರಿಸಿ',
+    voiceStepSubtitle: 'ಮೈಕ್ ಒತ್ತಿ ಉತ್ಪನ್ನದ ವಸ್ತುಗಳು, ಅಳತೆ, ಬಣ್ಣ, ಸಮಯ ಮತ್ತು ಸ್ಟಾಕ್ ಬಗ್ಗೆ ಮಾತನಾಡಿ.',
+    voicePromptGuide: 'ನಿಮ್ಮ ಧ್ವನಿ ಟಿಪ್ಪಣಿಯಲ್ಲಿ ಏನು ಹೇಳಬೇಕು:',
+    voicePromptExample: 'ಉದಾಹರಣೆ: "ಇದು ಕೈಯಿಂದ ಮಾಡಿದ ಮಣ್ಣಿನ ಪಾತ್ರೆ. ಎತ್ತರ 12 ಇಂಚು, ತೂಕ 1.5 ಕೆಜಿ. 10 ವಸ್ತುಗಳು ಸಿದ್ಧವಾಗಿವೆ."',
     extractingDetails: 'AI ವಿವರಗಳನ್ನು ಪಡೆಯುತ್ತಿದೆ...',
-    productReviewTitle: 'ಉತ್ಪನ್ನ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ',
+    productReviewTitle: 'ಉತ್ಪನ್ನದ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ',
     productTitleLabel: 'ಉತ್ಪನ್ನದ ಹೆಸರು',
-    categoryLabel: 'ವರ್ಗ',
-    materialLabel: 'ಬಳಸಿದ ವಸ್ತು',
-    quantityLabel: 'ಲಭ್ಯವಿರುವ ಸ್ಟಾಕ್',
-    productionTimeLabel: 'ಮಾಡಲು ತಗಲುವ ಸಮಯ',
-    colorsLabel: 'ಬಣ್ಣಗಳು',
-    dimensionsLabel: 'ಅಳತೆಗಳು',
-    generatingDescription: 'ವಿವರಣೆ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...',
-    pricingTitle: 'ಬೆಲೆ ಮತ್ತು ವೆಚ್ಚ ಲೆಕ್ಕಾಚಾರ',
-    pricingSubtitle: 'ಕುಶಲಕರ್ಮಿಗೆ ನ್ಯಾಯಯುತ ಲಾಭವನ್ನು ಖಚಿತಪಡಿಸುವ AI ಬೆಲೆ ಶಿಫಾರಸು.',
-    costBreakdownTitle: 'ವೆಚ್ಚದ ವಿವರ',
-    materialCost: 'ಕಚ್ಚಾ ವಸ್ತುಗಳ ವೆಚ್ಚ',
-    labourCost: 'ಕಲೆ ಮತ್ತು ಶ್ರಮದ ಮೌಲ್ಯ',
+    categoryLabel: 'ವರ್ಗ (Category)',
+    materialLabel: 'ಬಳಸಿದ ಕಚ್ಚಾವಸ್ತು',
+    quantityLabel: 'ಲಭ್ಯವಿರುವ ಸ್ಟಾಕ್ ಪ್ರಮಾಣ',
+    productionTimeLabel: 'ತಯಾರಿಸಲು ಬೇಕಾದ ಸಮಯ',
+    colorsLabel: 'ಲಭ್ಯವಿರುವ ಬಣ್ಣಗಳು',
+    dimensionsLabel: 'ಅಳತೆಗಳು / ತೂಕ',
+    generatingDescription: 'ಉತ್ಪನ್ನ ವಿವರಣೆಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...',
+    pricingTitle: 'ಪಾರದರ್ಶಕ ವೆಚ್ಚ ಮತ್ತು ನ್ಯಾಯಯುತ ಬೆಲೆ',
+    pricingSubtitle: 'ಕುಶಲಕರ್ಮಿಗಳಿಗೆ ಉತ್ತಮ ಲಾಭವನ್ನು ಖಾತರಿಪಡಿಸುವ ಶಿಫಾರಸು ಮಾಡಿದ ಮಾರಾಟ ಬೆಲೆ.',
+    costBreakdownTitle: 'ವೆಚ್ಚದ ವಿವರಗಳು',
+    materialCost: 'ಕಚ್ಚಾವಸ್ತುಗಳ ವೆಚ್ಚ',
+    labourCost: 'ಶ್ರಮ ಮತ್ತು ಸಮಯದ ಮೌಲ್ಯ',
     totalCostLabel: 'ಒಟ್ಟು ಉತ್ಪಾದನಾ ವೆಚ್ಚ',
-    recommendedPriceLabel: 'ಶಿಫಾರಸು ಮಾಡಿದ ಮಾರಾಟ ಬೆಲೆ',
+    recommendedPriceLabel: 'ಶಿಫಾರಸು ಮಾಡಿದ ಬೆಲೆ',
     currentStockLabel: 'ಲಭ್ಯವಿರುವ ಸ್ಟಾಕ್',
     minOrderQtyLabel: 'ಕನಿಷ್ಠ ಆರ್ಡರ್ ಪ್ರಮಾಣ (MOQ)',
-    publishProductBtn: '🚀 ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಉತ್ಪನ್ನ ಪ್ರಕಟಿಸಿ',
+    publishProductBtn: '🚀 ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಉತ್ಪನ್ನವನ್ನು ಪ್ರಕಟಿಸಿ',
     productSavedSuccess: 'ಉತ್ಪನ್ನ ಯಶಸ್ವಿಯಾಗಿ ಪ್ರಕಟಿಸಲಾಗಿದೆ!',
 
-    welcomeBack: 'ಮತ್ತೆ ಸ್ವಾಗತ,',
-    artisanIdBadge: 'ಕುಶಲಕರ್ಮಿ ID',
+    deterministicPricingTitle: 'ವೆಚ್ಚ ಮತ್ತು ಬೆಲೆ ಲೆಕ್ಕಾಚಾರ ಎಂಜಿನ್',
+    deterministicPricingSubtitle: 'ನೈಜ ಉತ್ಪಾದನಾ ವೆಚ್ಚಗಳನ್ನು ನಮೂದಿಸಿ. ಬೆಲೆಯನ್ನು ಪಾರದರ್ಶಕವಾಗಿ ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತದೆ.',
+    materialCostInputLabel: 'ಕಚ್ಚಾವಸ್ತುಗಳ ವೆಚ್ಚ (₹)',
+    labourCostCalcLabel: 'ಶ್ರಮ ವೆಚ್ಚದ ಲೆಕ್ಕಾಚಾರ',
+    directAmountBtn: 'ನೇರ ಮೊತ್ತ',
+    byHoursBtn: 'ಗಂಟೆಗಳ ಆಧಾರದ ಮೇಲೆ',
+    byDaysBtn: 'ದಿನಗಳ ಆಧಾರದ ಮೇಲೆ',
+    hourlyRateLabel: 'ಪ್ರತಿ ಗಂಟೆಯ ದರ (₹/ಗಂಟೆ)',
+    dailyRateLabel: 'ಪ್ರತಿ ದಿನದ ದರ (₹/ದಿನ)',
+    otherCostsLabel: 'ಇತರ ಉತ್ಪಾದನಾ ವೆಚ್ಚಗಳು (₹)',
+    artisanMinMarginLabel: 'ಕನಿಷ್ಠ ಲಾಭಾಂಶ (%)',
+    artisanMaxMarginLabel: 'ಗರಿಷ್ಠ ಲಾಭಾಂಶ (%)',
+    calcSellingPriceBtn: 'ಮಾರಾಟ ಬೆಲೆ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಹೋಲಿಕೆಯನ್ನು ಲೆಕ್ಕಹಾಕಿ →',
+    finalReviewTitle: 'ಅಂತಿಮ ಉತ್ಪನ್ನ ಮತ್ತು ಬೆಲೆ ಪರಿಶೀಲನೆ',
+    finalReviewSubtitle: 'ಆನ್‌ಲೈನ್ ರಿಟೇಲ್ ಮಾರುಕಟ್ಟೆಗಳೊಂದಿಗೆ ಪಾರದರ್ಶಕ ವೆಚ್ಚ ವಿಶ್ಲೇಷಣೆ.',
+    livePlatformComparisonTitle: '🌐 ಲೈವ್ ಆನ್‌ಲೈನ್ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಬೆಲೆ ಹೋಲಿಕೆ',
+    realtimeEcommerceBenchmark: 'ರಿಯಲ್-ಟೈಮ್ ಇ-ಕಾಮರ್ಸ್ ಬೆಂಚ್‌ಮಾರ್ಕ್',
+    marketInsightLabel: 'ಮಾರುಕಟ್ಟೆ ಒಳನೋಟ:',
+    yourProductionCostLabel: 'ನಿಮ್ಮ ಉತ್ಪಾದನಾ ವೆಚ್ಚ:',
+    onlineRetailAvgLabel: 'ಆನ್‌ಲೈನ್ ರಿಟೇಲ್ ಸರಾಸರಿ:',
+    directRecommendedPriceLabel: 'ನೇರ ಶಿಫಾರಸು ಮಾಡಿದ ನ್ಯಾಯಯುತ ಬೆಲೆ:',
+    yourCleanProfitLabel: 'ನಿಮ್ಮ ನಿವ್ವಳ ಲಾಭ / ಪ್ರತಿ ಯೂನಿಟ್‌ಗೆ:',
+    zeroMiddlemanCuts: '(ಮಧ್ಯವರ್ತಿಗಳ ಕಮಿಷನ್ ಇಲ್ಲ!)',
+    productTitleFieldLabel: 'ಉತ್ಪನ್ನದ ಶೀರ್ಷಿಕೆ / ಹೆಸರು',
+    yourDirectSellingPriceLabel: 'ನಿಮ್ಮ ನೇರ ಮಾರಾಟ ಬೆಲೆ (₹)',
+    editCostsBtn: '← ವೆಚ್ಚಗಳನ್ನು ತಿದ್ದುಪಡಿ ಮಾಡಿ',
+    editDetailsBtn: '← ವಿವರಗಳನ್ನು ತಿದ್ದುಪಡಿ ಮಾಡಿ',
+    publishToMarketplaceBtn: '🚀 ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಉತ್ಪನ್ನವನ್ನು ಪ್ರಕಟಿಸಿ',
+
+    welcomeBack: 'ಮರಳಿ ಸ್ವಾಗತ,',
+    artisanIdBadge: 'ಕುಶಲಕರ್ಮಿ ಐಡಿ',
     showQRBtn: '📱 QR ಕೋಡ್ ತೋರಿಸಿ',
     hideQRBtn: 'QR ಕೋಡ್ ಮರೆಮಾಡಿ',
-    downloadQRBtn: '📥 QR ಇಮೇಜ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ',
-    previewProfileBtn: '🔗 ಪ್ರೊಫೈಲ್ ಮುನ್ನೋಟ',
-    qrScanInstruction: 'ಪ್ರೊಫೈಲ್ ಮತ್ತು ವಸ್ತುಗಳನ್ನು ನೋಡಲು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+    downloadQRBtn: '📥 QR ಚಿತ್ರ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ',
+    previewProfileBtn: '🔗 ಪ್ರೊಫೈಲ್ ವೀಕ್ಷಣೆ',
+    qrScanInstruction: 'ಪ್ರೊಫೈಲ್ ಮತ್ತು ಉತ್ಪನ್ನಗಳನ್ನು ನೋಡಲು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
     totalProducts: 'ಒಟ್ಟು ಉತ್ಪನ್ನಗಳು',
-    published: 'ಪ್ರಕಟಿಸಲಾಗಿದೆ',
+    published: 'ಪ್ರಕಟಿತ',
     drafts: 'ಕರಡುಗಳು',
     addProductBtn: '➕ ಉತ್ಪನ್ನ ಸೇರಿಸಿ',
     viewOrdersBtn: '📦 ಆರ್ಡರ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ',
-    updateStockModalTitle: '📦 ಸ್ಟಾಕ್ ನವೀಕರಿಸಿ',
+    updateStockModalTitle: '📦 ಸ್ಟಾಕ್ ಪ್ರಮಾಣವನ್ನು ನವೀಕರಿಸಿ',
     quickUpdateStock: '📦 ಸ್ಟಾಕ್ ನವೀಕರಣ',
-    inStockBadge: 'ಸ್ಟಾಕ್ ಇದೆ',
+    inStockBadge: 'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ',
     outOfStockBadge: 'ಸ್ಟಾಕ್ ಮುಗಿದಿದೆ',
   },
 
   // === MALAYALAM (മലയാളം) ===
   ml: {
-    appTitle: 'കൈത്തൊഴിൽ വിപണി',
-    marketplace: 'വിപണി (Marketplace)',
+    appTitle: 'കരകൗശല വിപണി',
+    marketplace: 'മാർക്കറ്റ്പ്ലെയ്സ്',
     dashboard: 'ഡാഷ്‌ബോർഡ്',
     orders: 'ഓർഡറുകൾ',
     notifications: 'അറിയിപ്പുകൾ',
@@ -592,74 +797,108 @@ export const translations: Record<string, TranslationDictionary> = {
     continue: 'തുടരുക',
     back: 'പിന്നോട്ട്',
     submit: 'സമർപ്പിക്കുക',
-    edit: 'എഡിറ്റ് ചെയ്യുക',
+    edit: 'മാറ്റം വരുത്തുക',
 
     chooseLanguageTitle: 'നിങ്ങളുടെ ഭാഷ തിരഞ്ഞെടുക്കുക',
-    chooseLanguageSubtitle: 'നിങ്ങൾക്ക് സംസാരിക്കാൻ ഏറ്റവും എളുപ്പമുള്ള ഭാഷ തിരഞ്ഞെടുക്കുക.',
+    chooseLanguageSubtitle: 'നിങ്ങൾക്ക് ഏറ്റവും സൗകര്യപ്രദമായ ഭാഷ തിരഞ്ഞെടുക്കുക. എല്ലാ നിർദ്ദേശങ്ങളും വോയ്‌സ് ഫീച്ചറുകളും നിങ്ങളുടെ ഭാഷയിൽ ലഭ്യമാകും.',
 
     onboardingTitle: 'നിങ്ങളെക്കുറിച്ച് ഞങ്ങളോട് പറയുക',
-    onboardingSubtitle: 'മൈക്രോഫോൺ അമർത്തി സംസാരിക്കുക. നിങ്ങളുടെ പേര്, സ്ഥലം, ജോലി, അനുഭവം എന്നിവ പറയുക.',
-    onboardingExample: 'ഉദാഹരണം: "എന്റെ പേര് ലക്ഷ്മി. ഞാൻ കൈത്തറി പട്ടുസാരികൾ നെയ്യുന്നു."',
-    tapToRecord: 'റെക്കോർഡിംഗ് ആരംഭിക്കാൻ ടാപ്പ് ചെയ്യുക',
-    recordingActive: 'കേൾക്കുന്നു... സംസാരിക്കൂ',
-    tapToStop: 'റെക്കോർഡിംഗ് നിർത്താൻ ടാപ്പ് ചെയ്യുക',
-    processingAudio: 'ശബ്ദം AI പ്രോസസ്സ് ചെയ്യുന്നു...',
-    preferToType: 'ടൈപ്പ് ചെയ്യാൻ താൽപ്പര്യമുണ്ടോ?',
+    onboardingSubtitle: 'മൈക്രോഫോൺ അമർത്തി സംസാരിക്കുക. പേര്, സ്ഥലം, കരകൗശല വിദ്യ, മുൻപരിചയം എന്നിവ പറയുക.',
+    onboardingExample: 'ഉദാഹരണം: "എന്റെ പേര് രാജേഷ്. ഞാൻ തൃശൂരിൽ നിന്നാണ്. ഞാൻ പാരമ്പര്യ പിച്ചള വിളക്കുകളും ശിൽപങ്ങളും ഉണ്ടാക്കുന്നു."',
+    tapToRecord: 'റെക്കോർഡിംഗ് ആരംഭിക്കാൻ അമർത്തുക',
+    recordingActive: 'കേൾക്കുന്നു... സംസാരിക്കുക',
+    tapToStop: 'റെക്കോർഡിംഗ് അവസാനിപ്പിക്കാൻ അമർത്തുക',
+    processingAudio: 'AI നിങ്ങളുടെ ശബ്ദം പരിശോധിക്കുന്നു...',
+    preferToType: 'ടൈപ്പ് ചെയ്യാൻ താൽപ്പര്യമുണ്ടോ? നേരിട്ട് നൽകുക',
     typeManually: 'വിവരങ്ങൾ നേരിട്ട് നൽകുക',
+    optionalTypedDetails: 'ഐച്ഛിക ലിഖിത വിവരങ്ങൾ',
+    addExtraDetailsPlaceholder: 'കൂടുതൽ വിവരങ്ങൾ ഇവിടെ നൽകാം...',
+    proceedWithTypedDetails: 'നൽകിയ വിവരങ്ങളുമായി തുടരുക →',
+    rerecordBtn: '🔄 വീണ്ടും റെക്കോർഡ് ചെയ്യുക',
     reviewProfileTitle: 'പ്രൊഫൈൽ പരിശോധിക്കുക',
-    reviewProfileSubtitle: 'നിങ്ങളുടെ ശബ്ദത്തിൽ നിന്ന് ലഭിച്ച വിവരങ്ങൾ ഇതാ.',
+    reviewProfileSubtitle: 'നിങ്ങളുടെ ശബ്ദത്തിൽ നിന്ന് ശേഖരിച്ച വിവരങ്ങൾ പരിശോധിക്കുക.',
     nameLabel: 'മുഴുവൻ പേര്',
-    locationLabel: 'സ്ഥലം & സംസ്ഥാനം',
-    craftTypeLabel: 'കൈത്തൊഴിൽ കലാരൂപം',
-    experienceLabel: 'പ്രവർത്തിപരിചയം',
-    storyLabel: 'നിങ്ങളുടെ പാരമ്പര്യ ചരിത്രം',
-    namePlaceholder: 'പേര് നൽകുക',
-    locationPlaceholder: 'ഉദാ: പാലക്കാട്, കേരളം',
-    craftPlaceholder: 'ഉദാ: കളിമൺ ശിൽപങ്ങൾ, കൈത്തറി',
+    locationLabel: 'ഗ്രാമം / നഗരം & സംസ്ഥാനം',
+    craftTypeLabel: 'പ്രധാന കരകൗശല വിദ്യ',
+    experienceLabel: 'പരിചയസമ്പത്ത് (വർഷങ്ങൾ)',
+    storyLabel: 'പാരമ്പര്യ കഥ',
+    namePlaceholder: 'മുഴുവൻ പേര് നൽകുക',
+    locationPlaceholder: 'ഉദാ: തൃശൂർ, കേരളം',
+    craftPlaceholder: 'ഉദാ: പിച്ചള വിളക്കുകൾ, മൺപാത്ര നിർമ്മാണം',
     experiencePlaceholder: 'ഉദാ: 10 വർഷം',
-    storyPlaceholder: 'നിങ്ങളുടെ അനുഭവങ്ങൾ പങ്കുവെക്കുക...',
-    confirmSaveProfile: 'സേവ് ചെയ്ത് ഡാഷ്‌ബോർഡിലേക്ക് പോകുക',
+    storyPlaceholder: 'നിങ്ങളുടെ പാരമ്പര്യ കരകൗശല ചരിത്രം പങ്കുവെക്കുക...',
+    confirmSaveProfile: 'സംരക്ഷിച്ച് ഡാഷ്‌ബോർഡിലേക്ക് പോകുക',
 
     productUploadTitle: 'പുതിയ ഉൽപ്പന്നം ചേർക്കുക',
-    photoStepTitle: 'ഉൽപ്പന്നത്തിന്റെ ഫോട്ടോ എടുക്കുക',
-    photoStepSubtitle: 'നല്ല വെളിച്ചത്തിൽ വ്യക്തമായ ഫോട്ടോ എടുക്കുക.',
-    takePhotoCamera: '📸 ക്യാമറയിൽ ഫോട്ടോ എടുക്കുക',
+    productCreationWizardSubtitle: 'AI-സഹായത്തോടെ ഉൽപ്പന്നം ചേർക്കുന്ന വിസാർഡ്',
+    photoStepTitle: 'ഉൽപ്പന്നത്തിന്റെ ഫോട്ടോ എടുക്കുക അല്ലെങ്കിൽ അപ്‌ലോഡ് ചെയ്യുക',
+    photoStepSubtitle: 'നല്ല വെളിച്ചത്തിൽ ഉൽപ്പന്നത്തിന്റെ വ്യക്തമായ ഫോട്ടോ എടുക്കുക.',
+    takePhotoCamera: '📸 ക്യാമറ വഴി ഫോട്ടോ എടുക്കുക',
     uploadFromGallery: '🖼️ ഗാലറിയിൽ നിന്ന് അപ്‌ലോഡ് ചെയ്യുക',
-    cameraModalTitle: 'തത്സമയ ക്യാമറ',
+    cameraModalTitle: 'തത്സമയ ക്യാമറ കാഴ്ച്ച',
     captureSnapshot: '📸 ഫോട്ടോ എടുക്കുക',
     closeCamera: 'ക്യാമറ അടയ്ക്കുക',
-    enhancingPhoto: '✨ AI ഉപയോഗിച്ച് ഫോട്ടോ മിനുക്കുന്നു...',
-    voiceStepTitle: 'ഉൽപ്പന്ന വിവരങ്ങൾ സംസാരിച്ചു പറയുക',
-    voiceStepSubtitle: 'മൈക്ക് അമർത്തി ഉൽപ്പന്നത്തിന്റെ വിവരങ്ങൾ, നിർമ്മാണ സമയം, ലഭ്യമായ സ്റ്റോക്ക് എന്നിവ പറയുക.',
-    voicePromptGuide: 'ശബ്ദത്തിൽ പറയേണ്ട കാര്യങ്ങൾ:',
-    voicePromptExample: 'ഉദാഹരണം: "ഇത് കളിമണ്ണിൽ നിർമ്മിച്ച കുടമാണ്. 10 എണ്ണം തയ്യാറാണ്."',
-    extractingDetails: 'വിവരങ്ങൾ AI വേർതിരിച്ചെടുക്കുന്നു...',
+    enhancingPhoto: '✨ AI ഉപയോഗിച്ച് ഫോട്ടോ മിഴിവ് വർദ്ധിപ്പിക്കുന്നു...',
+    voiceStepTitle: 'ഉൽപ്പന്ന വിവരങ്ങൾ ശബ്ദത്തിലൂടെ പറയുക',
+    voiceStepSubtitle: 'മൈക്ക് അമർത്തി സാധനത്തിന്റെ നിർമ്മാണ വസ്തുക്കൾ, വലിപ്പം, സമയം, സ്റ്റോക്ക് എന്നിവ പറയുക.',
+    voicePromptGuide: 'വോയ്‌സ് നോട്ടിൽ പറയേണ്ട കാര്യങ്ങൾ:',
+    voicePromptExample: 'ഉദാഹരണം: "ഇത് കളിമണ്ണിൽ നിർമ്മിച്ച പരമ്പരാഗത ജലപാത്രമാണ്. ഉയരം 12 ഇഞ്ച്, ഭാരം 1.5 കിലോ. 10 എണ്ണം തയ്യാറാണ്."',
+    extractingDetails: 'AI വിവരങ്ങൾ ശേഖരിക്കുന്നു...',
     productReviewTitle: 'ഉൽപ്പന്ന വിവരങ്ങൾ പരിശോധിക്കുക',
     productTitleLabel: 'ഉൽപ്പന്നത്തിന്റെ പേര്',
-    categoryLabel: 'വിഭാഗം',
-    materialLabel: 'ഉപയോഗിച്ച വസ്തു',
-    quantityLabel: 'ലഭ്യമായ എണ്ണം (Stock)',
+    categoryLabel: 'വിഭാഗം (Category)',
+    materialLabel: 'ഉപയോഗിച്ച വസ്തുക്കൾ',
+    quantityLabel: 'ലഭ്യമായ സ്റ്റോക്ക് എണ്ണം',
     productionTimeLabel: 'നിർമ്മാണ സമയം',
-    colorsLabel: 'നിറങ്ങൾ',
-    dimensionsLabel: 'വലിപ്പം / ഭാരം',
-    generatingDescription: 'വിവരണം തയ്യാറാക്കുന്നു...',
-    pricingTitle: 'വിലയും ലാഭവും കണക്കാക്കൽ',
-    pricingSubtitle: 'ന്യായമായ ലാഭം ഉറപ്പാക്കുന്ന AI വില നിർദ്ദേശം.',
+    colorsLabel: 'ലഭ്യമായ നിറങ്ങൾ',
+    dimensionsLabel: 'അളവുകൾ / ഭാരം',
+    generatingDescription: 'ഉൽപ്പന്ന വിവരണം തയ്യാറാക്കുന്നു...',
+    pricingTitle: 'സുതാര്യമായ വിലയും ചെലവ് കണക്കാക്കലും',
+    pricingSubtitle: 'കലാകാരന്മാർക്ക് ന്യായമായ ലാഭം ഉറപ്പാക്കുന്ന AI ശുപാർശ ചെയ്യുന്ന വില.',
     costBreakdownTitle: 'ചെലവ് വിവരങ്ങൾ',
     materialCost: 'അസംസ്കൃത വസ്തുക്കളുടെ ചെലവ്',
     labourCost: 'അധ്വാനത്തിന്റെയും സമയത്തിന്റെയും മൂല്യം',
-    totalCostLabel: 'ആകെ നിർമ്മാണച്ചെലവ്',
-    recommendedPriceLabel: 'നിർദ്ദേശിച്ച വിൽപനവില',
+    totalCostLabel: 'ആകെ ഉൽപ്പാദന ചെലവ്',
+    recommendedPriceLabel: 'ശുപാർശ ചെയ്യുന്ന വിൽപന വില',
     currentStockLabel: 'ലഭ്യമായ സ്റ്റോക്ക്',
     minOrderQtyLabel: 'കുറഞ്ഞ ഓർഡർ അളവ് (MOQ)',
     publishProductBtn: '🚀 വിപണിയിൽ പ്രസിദ്ധീകരിക്കുക',
     productSavedSuccess: 'ഉൽപ്പന്നം വിജയകരമായി പ്രസിദ്ധീകരിച്ചു!',
 
-    welcomeBack: 'സ്വാഗതം,',
-    artisanIdBadge: 'കലാകാരൻ ID',
+    deterministicPricingTitle: 'ഉൽപ്പാദന ചെലവും ന്യായവില കണക്കാക്കലും',
+    deterministicPricingSubtitle: 'യഥാർത്ഥ നിർമ്മാണ ചെലവുകൾ നൽകുക. വില സുതാര്യമായി കണക്കാക്കും.',
+    materialCostInputLabel: 'അസംസ്കൃത വസ്തുക്കളുടെ ചെലവ് (₹)',
+    labourCostCalcLabel: 'തൊഴിൽ ചെലവ് കണക്കാക്കൽ',
+    directAmountBtn: 'നേരിട്ടുള്ള തുക',
+    byHoursBtn: 'മണിക്കൂറുകൾ അടിസ്ഥാനമാക്കി',
+    byDaysBtn: 'ദിവസങ്ങൾ അടിസ്ഥാനമാക്കി',
+    hourlyRateLabel: 'മണിക്കൂർ നിരക്ക് (₹/മണിക്കൂർ)',
+    dailyRateLabel: 'ദിവസ നിരക്ക് (₹/ദിവസം)',
+    otherCostsLabel: 'മറ്റ് ഉൽപ്പാദന ചെലവുകൾ (₹)',
+    artisanMinMarginLabel: 'കുറഞ്ഞ ലാഭവിഹിതം (%)',
+    artisanMaxMarginLabel: 'പരമാവധി ലാഭവിഹിതം (%)',
+    calcSellingPriceBtn: 'വിൽപന വിലയും വിപണി താരതമ്യവും കണക്കാക്കുക →',
+    finalReviewTitle: 'അന്തിമ ഉൽപ്പന്നവും വില പരിശോധനയും',
+    finalReviewSubtitle: 'ഓൺലൈൻ റീട്ടെയിൽ വിപണികളുമായി താരതമ്യം ചെയ്ത സുതാര്യമായ ചെലവ് വിശകലനം.',
+    livePlatformComparisonTitle: '🌐 തത്സമയ ഓൺലൈൻ പ്ലാറ്റ്‌ഫോം വില താരതമ്യം',
+    realtimeEcommerceBenchmark: 'തത്സമയ ഇ-കൊമേഴ്സ് ബെഞ്ച്മാർക്ക്',
+    marketInsightLabel: 'വിപണി വിശകലനം:',
+    yourProductionCostLabel: 'നിങ്ങളുടെ ഉൽപ്പാദന ചെലവ്:',
+    onlineRetailAvgLabel: 'ഓൺലൈൻ റീട്ടെയിൽ ശരാശരി:',
+    directRecommendedPriceLabel: 'നേരിട്ട് ശുപാർശ ചെയ്യുന്ന ന്യായവില:',
+    yourCleanProfitLabel: 'നിങ്ങളുടെ ലാഭം / ഒരു യൂണിറ്റിന്:',
+    zeroMiddlemanCuts: '(ഇടനിലക്കാരുടെ കമ്മീഷൻ ഇല്ല!)',
+    productTitleFieldLabel: 'ഉൽപ്പന്ന ശീർഷകം / പേര്',
+    yourDirectSellingPriceLabel: 'നിങ്ങളുടെ നേരിട്ടുള്ള വിൽപന വില (₹)',
+    editCostsBtn: '← ചെലവുകൾ തിരുത്തുക',
+    editDetailsBtn: '← വിവരങ്ങൾ തിരുത്തുക',
+    publishToMarketplaceBtn: '🚀 വിപണിയിൽ പ്രസിദ്ധീകരിക്കുക',
+
+    welcomeBack: 'തിരികെ സ്വാഗതം,',
+    artisanIdBadge: 'കലാകാരൻ ഐഡി',
     showQRBtn: '📱 QR കോഡ് കാണിക്കുക',
     hideQRBtn: 'QR കോഡ് മറയ്ക്കുക',
-    downloadQRBtn: '📥 QR ഡൗൺലോഡ് ചെയ്യുക',
+    downloadQRBtn: '📥 QR ചിത്രം ഡൗൺലോഡ് ചെയ്യുക',
     previewProfileBtn: '🔗 പ്രൊഫൈൽ കാണുക',
     qrScanInstruction: 'പ്രൊഫൈലും ഉൽപ്പന്നങ്ങളും കാണാൻ സ്കാൻ ചെയ്യുക',
     totalProducts: 'ആകെ ഉൽപ്പന്നങ്ങൾ',
@@ -667,64 +906,45 @@ export const translations: Record<string, TranslationDictionary> = {
     drafts: 'ഡ്രാഫ്റ്റുകൾ',
     addProductBtn: '➕ ഉൽപ്പന്നം ചേർക്കുക',
     viewOrdersBtn: '📦 ഓർഡറുകൾ കാണുക',
-    updateStockModalTitle: '📦 സ്റ്റോക്ക് പുതുക്കുക',
-    quickUpdateStock: '📦 സ്റ്റോക്ക് മാറ്റുക',
-    inStockBadge: 'സ്റ്റോക്ക് ഉണ്ട്',
+    updateStockModalTitle: '📦 സ്റ്റോക്ക് മാറ്റം വരുത്തുക',
+    quickUpdateStock: '📦 സ്റ്റോക്ക് പുതുക്കുക',
+    inStockBadge: 'സ്റ്റോക്കിലുണ്ട്',
     outOfStockBadge: 'സ്റ്റോക്ക് തീർന്നു',
   },
 };
 
-/**
- * Retrieve translation dictionary for given locale
- * Defaults to 'en' if not found
- */
-export function getTranslation(locale?: string | null): TranslationDictionary {
-  const code = (locale || 'en').toLowerCase().trim();
+// ============================================
+// Active Language Storage & Detection Helpers
+// ============================================
+
+export function getActiveLanguage(): string {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('artisan_lang');
+    if (saved && translations[saved]) return saved;
+  }
+  return 'en';
+}
+
+export function setActiveLanguage(lang: string) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('artisan_lang', lang);
+    document.cookie = `artisan_lang=${lang}; path=/; max-age=31536000; SameSite=Lax`;
+  }
+}
+
+export function getTranslation(lang?: string): TranslationDictionary {
+  const code = lang || (typeof window !== 'undefined' ? getActiveLanguage() : 'en');
   return translations[code] || translations.en;
 }
 
-/**
- * Get Web Speech API recognition language code
- */
-export function getSpeechRecognitionLang(locale?: string | null): string {
+export function getSpeechRecognitionLang(langCode: string): string {
   const map: Record<string, string> = {
     ta: 'ta-IN',
     hi: 'hi-IN',
     te: 'te-IN',
     kn: 'kn-IN',
     ml: 'ml-IN',
-    mr: 'mr-IN',
-    bn: 'bn-IN',
-    gu: 'gu-IN',
-    pa: 'pa-IN',
-    ur: 'ur-IN',
-    or: 'or-IN',
     en: 'en-IN',
   };
-  const code = (locale || 'en').toLowerCase().trim();
-  return map[code] || 'en-IN';
-}
-
-/**
- * Helper to get currently active language from cookie or localStorage
- */
-export function getActiveLanguage(): string {
-  if (typeof window === 'undefined') return 'en';
-
-  const local = localStorage.getItem('artisan_lang');
-  if (local) return local;
-
-  const match = document.cookie.match(/locale=([a-z]{2})/i);
-  if (match && match[1]) return match[1];
-
-  return 'en';
-}
-
-/**
- * Helper to update active language across storage and cookies
- */
-export function setActiveLanguage(locale: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('artisan_lang', locale);
-  document.cookie = `locale=${locale};path=/;max-age=${365 * 24 * 60 * 60}`;
+  return map[langCode] || 'en-IN';
 }

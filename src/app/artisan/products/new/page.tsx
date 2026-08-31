@@ -519,7 +519,7 @@ export default function NewProductPage() {
         {/* Step Header */}
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
           <h2 style={{ fontSize: 'var(--text-2xl)' }}>{t.productUploadTitle}</h2>
-          <p style={{ fontSize: 'var(--text-sm)' }}>AI-assisted product creation wizard</p>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>{t.productCreationWizardSubtitle}</p>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}
@@ -666,10 +666,10 @@ export default function NewProductPage() {
             </p>
 
             <div className="form-group" style={{ textAlign: 'left' }}>
-              <label className="form-label">Optional Typed Details</label>
+              <label className="form-label">{t.optionalTypedDetails}</label>
               <textarea
                 className="form-input form-textarea"
-                placeholder="Add any extra details manually here..."
+                placeholder={t.addExtraDetailsPlaceholder}
                 value={additionalText}
                 onChange={(e) => setAdditionalText(e.target.value)}
               />
@@ -687,7 +687,7 @@ export default function NewProductPage() {
               onClick={handleManualProceed}
               disabled={loading || (!transcript && !additionalText)}
             >
-              Proceed with Typed Details →
+              {t.proceedWithTypedDetails}
             </button>
           </div>
         )}
@@ -696,7 +696,7 @@ export default function NewProductPage() {
         {step === 'extraction_review' && (
           <div className="card card-body">
             <h3>{t.productReviewTitle}</h3>
-            <p style={{ marginBottom: 'var(--space-4)' }}>Extracted product details. Edit if needed.</p>
+            <p style={{ marginBottom: 'var(--space-4)' }}>{t.reviewProfileSubtitle}</p>
 
             <div className="grid grid-2">
               <div className="form-group">
@@ -712,7 +712,7 @@ export default function NewProductPage() {
                 <input className="form-input" value={details.material || ''} onChange={(e) => setDetails({ ...details, material: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Craft Technique</label>
+                <label className="form-label">{t.craftTypeLabel}</label>
                 <input className="form-input" value={details.craftTechnique || ''} onChange={(e) => setDetails({ ...details, craftTechnique: e.target.value })} />
               </div>
               <div className="form-group">
@@ -734,61 +734,61 @@ export default function NewProductPage() {
         {/* STEP 5: Cost & Pricing */}
         {step === 'cost_pricing' && (
           <div className="card card-body">
-            <h3>💰 Deterministic Pricing Engine</h3>
-            <p style={{ marginBottom: 'var(--space-4)' }}>Enter actual production costs. Price is calculated deterministically.</p>
+            <h3>💰 {t.deterministicPricingTitle}</h3>
+            <p style={{ marginBottom: 'var(--space-4)' }}>{t.deterministicPricingSubtitle}</p>
 
             <div className="form-group">
-              <label className="form-label">Material Cost (₹)</label>
+              <label className="form-label">{t.materialCostInputLabel}</label>
               <input type="number" className="form-input" value={materialCost} onChange={(e) => setMaterialCost(e.target.value === '' ? '' : Number(e.target.value))} />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Labour Cost Calculation</label>
+              <label className="form-label">{t.labourCostCalcLabel}</label>
               <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-3)' }}>
-                <button type="button" className={`btn ${labourType === 'direct' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setLabourType('direct')}>Direct Amount</button>
-                <button type="button" className={`btn ${labourType === 'hours' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setLabourType('hours')}>By Hours</button>
-                <button type="button" className={`btn ${labourType === 'days' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setLabourType('days')}>By Days</button>
+                <button type="button" className={`btn ${labourType === 'direct' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setLabourType('direct')}>{t.directAmountBtn}</button>
+                <button type="button" className={`btn ${labourType === 'hours' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setLabourType('hours')}>{t.byHoursBtn}</button>
+                <button type="button" className={`btn ${labourType === 'days' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setLabourType('days')}>{t.byDaysBtn}</button>
               </div>
 
               {labourType === 'direct' && (
-                <input type="number" className="form-input" placeholder="Direct Labour Cost (₹)" value={labourDirectCost} onChange={(e) => setLabourDirectCost(e.target.value === '' ? '' : Number(e.target.value))} />
+                <input type="number" className="form-input" placeholder="0" value={labourDirectCost} onChange={(e) => setLabourDirectCost(e.target.value === '' ? '' : Number(e.target.value))} />
               )}
               {labourType === 'hours' && (
                 <div className="grid grid-2">
                   <input type="number" className="form-input" placeholder="Hours" value={labourHours} onChange={(e) => setLabourHours(e.target.value === '' ? '' : Number(e.target.value))} />
-                  <input type="number" className="form-input" placeholder="Rate / Hour (₹)" value={labourRate} onChange={(e) => setLabourRate(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <input type="number" className="form-input" placeholder={t.hourlyRateLabel} value={labourRate} onChange={(e) => setLabourRate(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
               )}
               {labourType === 'days' && (
                 <div className="grid grid-2">
                   <input type="number" className="form-input" placeholder="Days" value={labourDays} onChange={(e) => setLabourDays(e.target.value === '' ? '' : Number(e.target.value))} />
-                  <input type="number" className="form-input" placeholder="Daily Rate (₹)" value={dailyRate} onChange={(e) => setDailyRate(e.target.value === '' ? '' : Number(e.target.value))} />
+                  <input type="number" className="form-input" placeholder={t.dailyRateLabel} value={dailyRate} onChange={(e) => setDailyRate(e.target.value === '' ? '' : Number(e.target.value))} />
                 </div>
               )}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Other Production Costs (₹)</label>
+              <label className="form-label">{t.otherCostsLabel}</label>
               <input type="number" className="form-input" value={otherCost} onChange={(e) => setOtherCost(e.target.value === '' ? '' : Number(e.target.value))} />
             </div>
 
             <div className="grid grid-2" style={{ marginBottom: 'var(--space-4)' }}>
               <div className="form-group">
-                <label className="form-label">Artisan Minimum Profit Margin (%)</label>
+                <label className="form-label">{t.artisanMinMarginLabel}</label>
                 <input
                   type="number"
                   className="form-input"
-                  placeholder="e.g. 20"
+                  placeholder="20"
                   value={minMargin}
                   onChange={(e) => setMinMargin(e.target.value === '' ? '' : Number(e.target.value))}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Artisan Maximum Profit Margin (%)</label>
+                <label className="form-label">{t.artisanMaxMarginLabel}</label>
                 <input
                   type="number"
                   className="form-input"
-                  placeholder="e.g. 35"
+                  placeholder="35"
                   value={maxMargin}
                   onChange={(e) => setMaxMargin(e.target.value === '' ? '' : Number(e.target.value))}
                 />
@@ -796,12 +796,12 @@ export default function NewProductPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Minimum Order Quantity (MOQ for B2B)</label>
+              <label className="form-label">{t.minOrderQtyLabel}</label>
               <input type="number" className="form-input" value={moq} onChange={(e) => setMoq(Number(e.target.value) || 1)} />
             </div>
 
             <button className="btn btn-primary btn-lg btn-full" onClick={handleCalculatePrice} disabled={loading}>
-              Calculate Selling Price & Market Comparison →
+              {t.calcSellingPriceBtn}
             </button>
           </div>
         )}
@@ -809,9 +809,9 @@ export default function NewProductPage() {
         {/* STEP 6: Final Review */}
         {step === 'final_review' && pricingBreakdown && (
           <div className="card card-body">
-            <h3 style={{ marginBottom: 'var(--space-2)' }}>Final Product & Pricing Review</h3>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>{t.finalReviewTitle}</h3>
             <p style={{ marginBottom: 'var(--space-6)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
-              Transparent cost analysis compared against live online retail marketplaces.
+              {t.finalReviewSubtitle}
             </p>
 
             {/* LIVE ONLINE PLATFORM PRICE COMPARISON */}
@@ -825,10 +825,10 @@ export default function NewProductPage() {
               }}>
                 <div className="flex-between flex-wrap gap-2" style={{ marginBottom: 'var(--space-4)' }}>
                   <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🌐 Live Online Platform Comparison
+                    {t.livePlatformComparisonTitle}
                   </h4>
                   <span className="badge badge-primary" style={{ fontSize: 'var(--text-xs)' }}>
-                    Real-Time E-Commerce Benchmark
+                    {t.realtimeEcommerceBenchmark}
                   </span>
                 </div>
 
@@ -869,7 +869,7 @@ export default function NewProductPage() {
                     color: 'var(--color-text)',
                     lineHeight: 1.6,
                   }}>
-                    💡 <strong>Market Insight:</strong> {pricingBreakdown.onlineInsight}
+                    💡 <strong>{t.marketInsightLabel}</strong> {pricingBreakdown.onlineInsight}
                   </div>
                 )}
               </div>
@@ -878,11 +878,11 @@ export default function NewProductPage() {
             {/* Deterministic Pricing Summary */}
             <div className="pricing-breakdown" style={{ marginBottom: 'var(--space-6)' }}>
               <div className="pricing-row">
-                <span className="pricing-label">Your Production Cost:</span>
+                <span className="pricing-label">{t.yourProductionCostLabel}</span>
                 <span className="pricing-value" style={{ fontWeight: 700 }}>{pricingBreakdown.display.productionCost}</span>
               </div>
               <div className="pricing-row">
-                <span className="pricing-label">Online Retail Average:</span>
+                <span className="pricing-label">{t.onlineRetailAvgLabel}</span>
                 <span className="pricing-value">
                   {pricingBreakdown.marketDataAvailable
                     ? `${pricingBreakdown.display.marketMin} - ${pricingBreakdown.display.marketMax}`
@@ -890,35 +890,35 @@ export default function NewProductPage() {
                 </span>
               </div>
               <div className="pricing-row">
-                <span className="pricing-label">Direct Recommended Fair Price:</span>
+                <span className="pricing-label">{t.directRecommendedPriceLabel}</span>
                 <span className="pricing-highlight">
                   {pricingBreakdown.display.recommendedMin} - {pricingBreakdown.display.recommendedMax}
                 </span>
               </div>
               <div className="pricing-row">
-                <span className="pricing-label">Your Clean Profit / Unit:</span>
+                <span className="pricing-label">{t.yourCleanProfitLabel}</span>
                 <span className="pricing-value" style={{ color: 'var(--color-success)', fontWeight: 700 }}>
-                  {pricingBreakdown.display.profitMin} - {pricingBreakdown.display.profitMax} (Zero middleman cuts!)
+                  {pricingBreakdown.display.profitMin} - {pricingBreakdown.display.profitMax} {t.zeroMiddlemanCuts}
                 </span>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Product Title</label>
+              <label className="form-label">{t.productTitleFieldLabel}</label>
               <input className="form-input" value={generatedTitle} onChange={(e) => setGeneratedTitle(e.target.value)} />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Your Direct Selling Price (₹)</label>
+              <label className="form-label">{t.yourDirectSellingPriceLabel}</label>
               <input type="number" className="form-input form-input-lg" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value === '' ? '' : Number(e.target.value))} />
             </div>
 
             <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
               <button className="btn btn-secondary btn-lg" onClick={() => setStep('cost_pricing')}>
-                ← Edit Costs
+                {t.editCostsBtn}
               </button>
               <button className="btn btn-success btn-lg" style={{ flex: 1 }} onClick={handlePublish} disabled={loading}>
-                🚀 Publish Product to Marketplace
+                {t.publishToMarketplaceBtn}
               </button>
             </div>
           </div>
