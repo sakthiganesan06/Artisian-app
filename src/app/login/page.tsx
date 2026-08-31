@@ -90,7 +90,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'OTP verification failed');
+        setError(data.details || data.error || 'OTP verification failed');
         return;
       }
 
