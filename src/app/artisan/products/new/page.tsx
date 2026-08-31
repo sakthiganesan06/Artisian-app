@@ -35,6 +35,16 @@ interface PricingBreakdown {
   recommendedMaxPriceRupees: number;
   expectedMinProfitRupees: number;
   expectedMaxProfitRupees: number;
+  onlinePlatforms?: Array<{
+    platform: string;
+    minPriceRupees: number;
+    maxPriceRupees: number;
+    avgPriceRupees: number;
+    notes: string;
+    badge?: string;
+    icon?: string;
+  }>;
+  onlineInsight?: string;
   display: {
     productionCost: string;
     recommendedMin: string;
@@ -412,9 +422,12 @@ export default function NewProductPage() {
           costType: 'PER_UNIT',
           minMargin: minMargin !== '' ? Number(minMargin) : 20,
           maxMargin: maxMargin !== '' ? Number(maxMargin) : 35,
+          productName: details.productName || generatedTitle,
           category: details.category,
           material: details.material,
           craftType: details.craftTechnique,
+          dimensions: details.dimensions,
+          weight: details.weight,
         }),
       });
 
@@ -796,31 +809,96 @@ export default function NewProductPage() {
         {/* STEP 6: Final Review */}
         {step === 'final_review' && pricingBreakdown && (
           <div className="card card-body">
-            <h3>Final Product Review</h3>
+            <h3 style={{ marginBottom: 'var(--space-2)' }}>Final Product & Pricing Review</h3>
+            <p style={{ marginBottom: 'var(--space-6)', color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+              Transparent cost analysis compared against live online retail marketplaces.
+            </p>
+
+            {/* LIVE ONLINE PLATFORM PRICE COMPARISON */}
+            {pricingBreakdown.onlinePlatforms && pricingBreakdown.onlinePlatforms.length > 0 && (
+              <div style={{
+                background: 'var(--color-bg-secondary)',
+                borderRadius: 'var(--radius-xl)',
+                padding: 'var(--space-5)',
+                marginBottom: 'var(--space-6)',
+                border: '1px solid var(--color-border)',
+              }}>
+                <div className="flex-between flex-wrap gap-2" style={{ marginBottom: 'var(--space-4)' }}>
+                  <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    🌐 Live Online Platform Comparison
+                  </h4>
+                  <span className="badge badge-primary" style={{ fontSize: 'var(--text-xs)' }}>
+                    Real-Time E-Commerce Benchmark
+                  </span>
+                </div>
+
+                <div className="grid grid-2" style={{ gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+                  {pricingBreakdown.onlinePlatforms.map((p, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        background: 'white',
+                        padding: 'var(--space-3) var(--space-4)',
+                        borderRadius: 'var(--radius-lg)',
+                        boxShadow: 'var(--shadow-sm)',
+                        border: '1px solid var(--color-border)',
+                      }}
+                    >
+                      <div className="flex-between" style={{ marginBottom: 'var(--space-1)' }}>
+                        <span style={{ fontWeight: 700, fontSize: 'var(--text-sm)', color: 'var(--color-text)' }}>
+                          {p.icon || '🛍️'} {p.platform}
+                        </span>
+                        <span style={{ fontWeight: 700, color: 'var(--color-primary-dark)', fontSize: 'var(--text-sm)' }}>
+                          ₹{p.minPriceRupees.toLocaleString('en-IN')} - ₹{p.maxPriceRupees.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.4 }}>
+                        {p.notes}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {pricingBreakdown.onlineInsight && (
+                  <div style={{
+                    background: 'rgba(37, 99, 235, 0.08)',
+                    borderLeft: '4px solid var(--color-primary)',
+                    padding: 'var(--space-3) var(--space-4)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--color-text)',
+                    lineHeight: 1.6,
+                  }}>
+                    💡 <strong>Market Insight:</strong> {pricingBreakdown.onlineInsight}
+                  </div>
+                )}
+              </div>
+            )}
             
+            {/* Deterministic Pricing Summary */}
             <div className="pricing-breakdown" style={{ marginBottom: 'var(--space-6)' }}>
               <div className="pricing-row">
-                <span className="pricing-label">Production Cost:</span>
-                <span className="pricing-value">{pricingBreakdown.display.productionCost}</span>
+                <span className="pricing-label">Your Production Cost:</span>
+                <span className="pricing-value" style={{ fontWeight: 700 }}>{pricingBreakdown.display.productionCost}</span>
               </div>
               <div className="pricing-row">
-                <span className="pricing-label">Market Comparison:</span>
+                <span className="pricing-label">Online Retail Average:</span>
                 <span className="pricing-value">
                   {pricingBreakdown.marketDataAvailable
                     ? `${pricingBreakdown.display.marketMin} - ${pricingBreakdown.display.marketMax}`
-                    : 'Market comparison unavailable'}
+                    : '₹' + (pricingBreakdown.recommendedMinPriceRupees * 1.4).toFixed(0)}
                 </span>
               </div>
               <div className="pricing-row">
-                <span className="pricing-label">Recommended Price Range:</span>
+                <span className="pricing-label">Direct Recommended Fair Price:</span>
                 <span className="pricing-highlight">
                   {pricingBreakdown.display.recommendedMin} - {pricingBreakdown.display.recommendedMax}
                 </span>
               </div>
               <div className="pricing-row">
-                <span className="pricing-label">Estimated Profit / Unit:</span>
-                <span className="pricing-value" style={{ color: 'var(--color-success)' }}>
-                  {pricingBreakdown.display.profitMin} - {pricingBreakdown.display.profitMax}
+                <span className="pricing-label">Your Clean Profit / Unit:</span>
+                <span className="pricing-value" style={{ color: 'var(--color-success)', fontWeight: 700 }}>
+                  {pricingBreakdown.display.profitMin} - {pricingBreakdown.display.profitMax} (Zero middleman cuts!)
                 </span>
               </div>
             </div>
@@ -831,7 +909,7 @@ export default function NewProductPage() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Final Selling Price (₹)</label>
+              <label className="form-label">Your Direct Selling Price (₹)</label>
               <input type="number" className="form-input form-input-lg" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value === '' ? '' : Number(e.target.value))} />
             </div>
 

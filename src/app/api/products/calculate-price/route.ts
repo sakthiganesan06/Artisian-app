@@ -8,6 +8,7 @@ import {
   CostInput,
 } from '@/lib/pricing/pricing-engine';
 import { getMarketDataProvider } from '@/lib/pricing/market-data';
+import { getOnlinePlatformPriceComparison } from '@/lib/pricing/online-platform-comparer';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate cost inputs
-    const { materialCost, labourCost, otherCost, costType, batchSize, category, material, craftType, region } = body;
+    const { materialCost, labourCost, otherCost, costType, batchSize, productName, category, material, craftType, dimensions, weight, region } = body;
 
     if (materialCost === undefined || materialCost < 0) {
       return NextResponse.json({ error: 'Valid material cost is required' }, { status: 400 });
@@ -36,18 +37,39 @@ export async function POST(request: NextRequest) {
     // Calculate production cost (in paisa)
     const productionCostPaisa = calculateProductionCost(costInput);
 
-    // Get market comparables
-    const marketDataProvider = getMarketDataProvider();
+    // Fetch real-time online platform price intelligence across Amazon, Flipkart, Etsy & FabIndia
+    const onlineComparison = await getOnlinePlatformPriceComparison({
+      productName,
+      category,
+      material,
+      craftTechnique: craftType,
+      dimensions,
+      weight,
+    });
+
+    // Get DB market comparables (or fallback to online range)
     let marketRange = null;
-    try {
-      marketRange = await marketDataProvider.getComparables({
-        category,
-        material,
-        craftType,
-        region,
-      });
-    } catch (err) {
-      console.warn('[PRICING] Market data fetch failed:', err);
+    if (onlineComparison && onlineComparison.marketLowestRupees > 0) {
+      marketRange = {
+        minPrice: onlineComparison.marketLowestRupees * 100,
+        maxPrice: onlineComparison.marketHighestRupees * 100,
+        avgPrice: onlineComparison.marketAverageRupees * 100,
+        sampleSize: onlineComparison.platforms.length,
+        source: onlineComparison.source,
+        collectedAt: new Date(),
+      };
+    } else {
+      const marketDataProvider = getMarketDataProvider();
+      try {
+        marketRange = await marketDataProvider.getComparables({
+          category,
+          material,
+          craftType,
+          region,
+        });
+      } catch (err) {
+        console.warn('[PRICING] Market data fetch failed:', err);
+      }
     }
 
     // Calculate recommended pricing with artisan-specified or default margins
@@ -69,6 +91,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       pricing: {
         ...pricing,
+        onlinePlatforms: onlineComparison.platforms,
+        onlineInsight: onlineComparison.pricingInsight,
         // Add rupee-formatted values for display
         display: {
           productionCost: `₹${pricing.productionCostRupees.toLocaleString('en-IN')}`,
