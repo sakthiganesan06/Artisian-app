@@ -91,18 +91,18 @@ Return valid JSON with format:
             if (text) {
               const parsed = JSON.parse(text);
               const result: OnlineMarketComparisonResult = {
-                platforms: (parsed.platforms || []).map((p: any) => ({
-                  platform: p.platform,
+                platforms: (parsed.platforms || []).map((p: Record<string, unknown>) => ({
+                  platform: String(p.platform || 'Online Market'),
                   minPriceRupees: Math.round(Number(p.minPriceRupees) || 0),
                   maxPriceRupees: Math.round(Number(p.maxPriceRupees) || 0),
                   avgPriceRupees: Math.round(Number(p.avgPriceRupees) || 0),
-                  notes: p.notes || '',
-                  badge: p.platform.includes('Amazon') ? '📦 Amazon Karigar' :
-                         p.platform.includes('Flipkart') ? '🛍️ Flipkart' :
-                         p.platform.includes('Etsy') ? '🌍 Etsy Handcrafted' : '🏛️ Jaypore / FabIndia',
-                  icon: p.platform.includes('Amazon') ? '📦' :
-                        p.platform.includes('Flipkart') ? '🛍️' :
-                        p.platform.includes('Etsy') ? '🌍' : '🏛️',
+                  notes: String(p.notes || ''),
+                  badge: String(p.platform || '').includes('Amazon') ? '📦 Amazon Karigar' :
+                         String(p.platform || '').includes('Flipkart') ? '🛍️ Flipkart' :
+                         String(p.platform || '').includes('Etsy') ? '🌍 Etsy Handcrafted' : '🏛️ Jaypore / FabIndia',
+                  icon: String(p.platform || '').includes('Amazon') ? '📦' :
+                        String(p.platform || '').includes('Flipkart') ? '🛍️' :
+                        String(p.platform || '').includes('Etsy') ? '🌍' : '🏛️',
                 })),
                 marketLowestRupees: Math.round(Number(parsed.marketLowestRupees) || 0),
                 marketHighestRupees: Math.round(Number(parsed.marketHighestRupees) || 0),

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface MarketplaceProduct {
   id: string;
@@ -26,37 +27,43 @@ interface MarketplaceProduct {
 export default function MarketplacePage() {
   const router = useRouter();
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [sort, setSort] = useState('newest');
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
-    fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, selectedCategory, sort]);
+    fetchMarketplace();
+  }, []);
 
-  const fetchProducts = async () => {
+  const fetchMarketplace = async () => {
     setLoading(true);
     try {
-      const query = new URLSearchParams();
-      if (search) query.set('search', search);
-      if (selectedCategory) query.set('category', selectedCategory);
-      if (sort) query.set('sort', sort);
-
-      const res = await fetch(`/api/marketplace/products?${query.toString()}`);
+      const res = await fetch('/api/marketplace/products');
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products || []);
-        setCategories(data.categories || []);
       }
     } catch (err) {
-      console.error('Marketplace fetch error:', err);
+      console.error('Failed to load marketplace:', err);
     } finally {
       setLoading(false);
     }
   };
+
+  const categories = ['ALL', ...Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[]];
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          p.artisan.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (p.material && p.material.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCat = selectedCategory === 'ALL' || p.category === selectedCategory;
+    return matchesSearch && matchesCat;
+  }).sort((a, b) => {
+    if (sortBy === 'price_asc') return a.priceRupees - b.priceRupees;
+    if (sortBy === 'price_desc') return b.priceRupees - a.priceRupees;
+    return 0; // Default newest
+  });
 
   return (
     <div style={{ background: 'var(--color-bg)', minHeight: '100vh' }}>
@@ -71,10 +78,10 @@ export default function MarketplacePage() {
       {/* Navigation */}
       <nav className="navbar">
         <div className="navbar-content">
-          <a className="navbar-brand" href="/marketplace">🛍️ Marketplace</a>
+          <Link className="navbar-brand" href="/marketplace">🛍️ Marketplace</Link>
           <div className="navbar-links">
-            <a className="navbar-link" href="/artisan/home">🎨 Artisan Portal</a>
-            <a className="navbar-link" href="/artisan/orders">📦 Orders</a>
+            <Link className="navbar-link" href="/artisan/home">🎨 Artisan Portal</Link>
+            <Link className="navbar-link" href="/artisan/orders">📦 Orders</Link>
           </div>
         </div>
       </nav>
@@ -89,20 +96,19 @@ export default function MarketplacePage() {
               type="text"
               className="form-input"
               placeholder="🔍 Search by product name, craft, material..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div style={{ width: '180px' }}>
             <select
               className="form-input"
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
             >
               <option value="newest">Newest First</option>
-              <option value="price_low">Price: Low to High</option>
-              <option value="price_high">Price: High to Low</option>
-              <option value="oldest">Oldest First</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
             </select>
           </div>
         </div>
@@ -110,19 +116,13 @@ export default function MarketplacePage() {
         {/* Category Filters */}
         {categories.length > 0 && (
           <div className="flex gap-2 flex-wrap" style={{ marginBottom: 'var(--space-6)' }}>
-            <button
-              className={`btn btn-sm ${selectedCategory === '' ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => setSelectedCategory('')}
-            >
-              All Categories
-            </button>
             {categories.map((cat) => (
               <button
                 key={cat}
                 className={`btn btn-sm ${selectedCategory === cat ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSelectedCategory(cat)}
               >
-                {cat}
+                {cat === 'ALL' ? 'All Categories' : cat}
               </button>
             ))}
           </div>
@@ -134,7 +134,7 @@ export default function MarketplacePage() {
             <div className="spinner" />
             <p className="loading-text">Loading marketplace items...</p>
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🏷️</div>
             <div className="empty-state-title">No products found</div>
@@ -142,7 +142,7 @@ export default function MarketplacePage() {
           </div>
         ) : (
           <div className="grid grid-3">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <div
                 key={product.id}
                 className="product-card"

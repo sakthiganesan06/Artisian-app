@@ -9,7 +9,7 @@ const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireAuth();
+    await requireAuth();
 
     const formData = await request.formData();
     const file = formData.get('image') as File;

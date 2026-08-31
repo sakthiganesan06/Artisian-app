@@ -20,7 +20,7 @@ function ruleBasedProductExtract(transcript: string) {
   let productionTime: string | null = null;
   let dimensions: string | null = null;
   let weight: string | null = null;
-  let color: string | null = null;
+  const color: string | null = null;
 
   // --- 1. Quantity Extraction (Universal numbers) ---
   const qtyMatch = transcript.match(/(?:இருப்பு|ஸ்டாக்|स्टॉक|stock|quantity|qty|total|count|have|ready)?\s*(\d+)\s*(?:துண்டுகள்|எண்ணிக்கை|பீஸ்|पीस|pieces|units|items|available|in stock|pots|vases|toys|lamps|sarees|boxes|sets)?/i);

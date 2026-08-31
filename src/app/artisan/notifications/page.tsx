@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getTranslation, getActiveLanguage } from '@/lib/i18n/translations';
 
 interface Notification {
@@ -71,12 +72,12 @@ export default function NotificationsPage() {
     <div style={{ background: 'var(--color-bg)', minHeight: '100vh' }}>
       <nav className="navbar">
         <div className="navbar-content">
-          <a className="navbar-brand" href="/artisan/home">🎨 {t.appTitle}</a>
+          <Link className="navbar-brand" href="/artisan/home">🎨 {t.appTitle}</Link>
           <div className="navbar-links">
-            <a className="navbar-link" href="/artisan/home">{t.dashboard}</a>
-            <a className="navbar-link" href="/artisan/orders">{t.orders}</a>
-            <a className="navbar-link active" href="/artisan/notifications">{t.notifications}</a>
-            <a className="navbar-link" href="/artisan/products/new">{t.addProductBtn}</a>
+            <Link className="navbar-link" href="/artisan/home">{t.dashboard}</Link>
+            <Link className="navbar-link" href="/artisan/orders">{t.orders}</Link>
+            <Link className="navbar-link active" href="/artisan/notifications">{t.notifications}</Link>
+            <Link className="navbar-link" href="/artisan/products/new">{t.addProductBtn}</Link>
           </div>
         </div>
       </nav>

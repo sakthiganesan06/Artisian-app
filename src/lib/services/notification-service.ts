@@ -4,7 +4,7 @@
 // ============================================
 
 import prisma from '@/lib/db';
-import { Prisma } from '@prisma/client';
+import twilio from 'twilio';
 
 export type NotificationType = 'NEW_ORDER' | 'ORDER_STATUS_CHANGE' | 'LOW_STOCK' | 'PROFILE_UPDATE' | 'SYSTEM';
 
@@ -123,8 +123,8 @@ export async function notifyArtisanNewOrder(params: {
     });
 
     if (artisanUser?.phone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-      const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      await twilio.messages.create({
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      await client.messages.create({
         body: `[Artisan Marketplace] ${title} #${params.orderId}! ${params.quantity}x ${params.productName} (₹${totalRupees}).`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: artisanUser.phone,

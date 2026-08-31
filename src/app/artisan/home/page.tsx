@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getTranslation, getActiveLanguage, setActiveLanguage } from '@/lib/i18n/translations';
 import { SUPPORTED_LANGUAGES } from '@/lib/validations';
 
@@ -71,14 +72,14 @@ export default function ArtisanHomePage() {
           setUnreadNotifs((prevCount) => {
             if (newUnread > prevCount && notifData.notifications?.[0]) {
               const newest = notifData.notifications[0];
-              let meta: any = {};
+              let meta: Record<string, unknown> = {};
               try { meta = newest.data ? JSON.parse(newest.data) : {}; } catch {}
 
               // Show Toast Banner
               setToastNotif({
                 title: newest.title,
                 message: newest.message,
-                orderId: meta.orderId,
+                orderId: typeof meta.orderId === 'string' ? meta.orderId : undefined,
               });
 
               // Trigger System Browser Notification if allowed
@@ -226,7 +227,7 @@ export default function ArtisanHomePage() {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-content">
-          <a className="navbar-brand" href="/artisan/home">🎨 Artisan</a>
+          <Link className="navbar-brand" href="/artisan/home">🎨 Artisan</Link>
           <div className="navbar-links" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
             {/* Quick Language Selector */}
             <select
@@ -250,14 +251,14 @@ export default function ArtisanHomePage() {
               ))}
             </select>
 
-            <a className="navbar-link" href="/artisan/orders">📦 {t.orders}</a>
-            <a className="navbar-link" href="/artisan/products/new">➕ {t.addProductBtn}</a>
-            <a className="navbar-link" href="/artisan/notifications" style={{ position: 'relative' }}>
+            <Link className="navbar-link" href="/artisan/orders">📦 {t.orders}</Link>
+            <Link className="navbar-link" href="/artisan/products/new">➕ {t.addProductBtn}</Link>
+            <Link className="navbar-link" href="/artisan/notifications" style={{ position: 'relative' }}>
               🔔
               {unreadNotifs > 0 && (
                 <span className="notification-badge">{unreadNotifs}</span>
               )}
-            </a>
+            </Link>
             <button className="btn btn-ghost" onClick={handleLogout} style={{ fontSize: 'var(--text-sm)' }}>
               {t.logout}
             </button>
