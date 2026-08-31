@@ -122,75 +122,20 @@ export default function NewProductPage() {
   const [loadingMsg, setLoadingMsg] = useState('');
   const [error, setError] = useState('');
 
-  // === LIVE CAMERA VIEWFINDER MODAL ===
-  const [cameraLoading, setCameraLoading] = useState(false);
-
-  // Hook to ensure video element always receives stream when modal opens
-  useEffect(() => {
-    if (showCameraModal && mediaStreamRef.current && videoRef.current) {
-      const video = videoRef.current;
-      video.srcObject = mediaStreamRef.current;
-      video.onloadedmetadata = () => {
-        video.play().catch(e => console.warn('Video playback warning:', e));
-      };
-    }
-  }, [showCameraModal]);
-
-  const startCameraStream = async () => {
+  // === DIRECT CAMERA & FILE CAPTURE HANDLERS ===
+  const triggerCameraCapture = () => {
     setError('');
-    setCameraLoading(true);
-
-    // On mobile devices, native hardware camera capture delivers the highest quality
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile && cameraInputRef.current) {
-      setCameraLoading(false);
+    if (cameraInputRef.current) {
       cameraInputRef.current.click();
-      return;
+    } else if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
+  };
 
-    try {
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(t => t.stop());
-        mediaStreamRef.current = null;
-      }
-
-      let stream: MediaStream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: 'environment' },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-          audio: false,
-        });
-      } catch {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-      }
-
-      mediaStreamRef.current = stream;
-      setShowCameraModal(true);
-      setCameraLoading(false);
-
-      // In case videoRef is already rendered
-      setTimeout(() => {
-        if (videoRef.current && mediaStreamRef.current) {
-          videoRef.current.srcObject = mediaStreamRef.current;
-          videoRef.current.play().catch(e => console.warn('Play error:', e));
-        }
-      }, 100);
-    } catch (err) {
-      console.warn('Camera stream error:', err);
-      setCameraLoading(false);
-      setShowCameraModal(false);
-      if (cameraInputRef.current) {
-        cameraInputRef.current.click();
-      } else {
-        setError('Camera permission denied or camera not found. Please click "Upload from Gallery" to pick a photo.');
-      }
+  const triggerGalleryUpload = () => {
+    setError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
   };
 
@@ -205,9 +150,18 @@ export default function NewProductPage() {
   const captureCameraSnapshot = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
+    
+    // Check if video actually has received camera frames
+    if (!video.videoWidth || video.videoWidth === 0 || video.readyState < 2) {
+      setError('Camera is still loading or unavailable. Please use "Choose File / Photo" to select a photo.');
+      stopCameraStream();
+      if (cameraInputRef.current) cameraInputRef.current.click();
+      return;
+    }
+
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -215,7 +169,7 @@ export default function NewProductPage() {
     canvas.toBlob(async (blob) => {
       if (blob) {
         stopCameraStream();
-        const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+        const file = new File([blob], `product-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
         await handleImageSelect(file);
       }
     }, 'image/jpeg', 0.92);
@@ -641,7 +595,7 @@ export default function NewProductPage() {
               <button
                 className="btn btn-primary btn-lg"
                 style={{ flex: 1 }}
-                onClick={startCameraStream}
+                onClick={triggerCameraCapture}
                 disabled={loading}
               >
                 {t.takePhotoCamera}
@@ -650,7 +604,7 @@ export default function NewProductPage() {
               <button
                 className="btn btn-secondary btn-lg"
                 style={{ flex: 1 }}
-                onClick={() => fileInputRef.current?.click()}
+                onClick={triggerGalleryUpload}
                 disabled={loading}
               >
                 {t.uploadFromGallery}
