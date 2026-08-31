@@ -77,12 +77,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const [isArtisanOwner, setIsArtisanOwner] = useState(false);
 
-  useEffect(() => {
-    checkSessionAndOwner();
-    fetchProduct();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
   const checkSessionAndOwner = async () => {
     try {
       const res = await fetch('/api/auth/session');
@@ -114,6 +108,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    checkSessionAndOwner();
+    fetchProduct();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // Stock & Delivery Validation
   const validateStockAndEstimate = async (qty: number, mode: 'RETAIL' | 'B2B') => {
