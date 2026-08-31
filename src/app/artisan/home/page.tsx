@@ -275,14 +275,56 @@ export default function ArtisanHomePage() {
             <div style={{
               marginTop: 'var(--space-6)',
               display: 'flex',
-              justifyContent: 'center',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: 'rgba(0,0,0,0.25)',
+              padding: 'var(--space-6)',
+              borderRadius: 'var(--radius-xl)',
             }}>
-              <div className="qr-container">
-                <img src={qrCode} alt="Artisan QR Code" width={200} height={200} className="qr-code-img" />
-                <span className="qr-artisan-id">{profile.artisanId}</span>
-                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                  Share this QR for your public profile
+              <div className="qr-container" style={{ background: 'white', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
+                <img src={qrCode} alt="Artisan QR Code" width={220} height={220} className="qr-code-img" style={{ borderRadius: '8px' }} />
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 700,
+                  fontSize: 'var(--text-sm)',
+                  color: 'var(--color-primary-dark)',
+                  marginTop: 'var(--space-2)',
+                }}>
+                  {profile.artisanId}
+                </div>
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>
+                  Scan with any phone camera to view profile & products
                 </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <a
+                  href={qrCode}
+                  download={`artisan-qr-${profile.artisanId}.png`}
+                  className="btn"
+                  style={{
+                    background: 'white',
+                    color: 'var(--color-primary-dark)',
+                    fontWeight: 700,
+                    fontSize: 'var(--text-sm)',
+                  }}
+                >
+                  📥 Download QR Image
+                </a>
+                <a
+                  href={`/artisan/${profile.artisanId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn"
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    border: '1px solid rgba(255,255,255,0.4)',
+                    fontSize: 'var(--text-sm)',
+                  }}
+                >
+                  🔗 Preview Public Profile
+                </a>
               </div>
             </div>
           )}
