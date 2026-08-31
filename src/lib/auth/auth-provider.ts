@@ -23,32 +23,17 @@ export interface AuthProvider {
 // ============================================
 
 class DevelopmentAuthProvider implements AuthProvider {
-  private otpStore: Map<string, { code: string; expiresAt: number }> = new Map();
-
   async sendOTP(phone: string): Promise<OTPResult> {
-    const code = '123456';
-    this.otpStore.set(phone, {
-      code,
-      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
-    });
-    console.log(`[DEV AUTH] OTP for ${phone}: ${code}`);
+    console.log(`[DEV AUTH] OTP for ${phone}: 123456`);
     return { success: true };
   }
 
-  async verifyOTP(phone: string, code: string): Promise<VerifyResult> {
-    const stored = this.otpStore.get(phone);
-    if (!stored) {
-      return { success: false, error: 'No OTP sent for this number. Please request a new OTP.' };
+  async verifyOTP(_phone: string, code: string): Promise<VerifyResult> {
+    // Stateless check — works on serverless (no shared memory between invocations)
+    if (code === '123456') {
+      return { success: true };
     }
-    if (Date.now() > stored.expiresAt) {
-      this.otpStore.delete(phone);
-      return { success: false, error: 'OTP expired. Please request a new OTP.' };
-    }
-    if (stored.code !== code) {
-      return { success: false, error: 'Invalid OTP. Please try again.' };
-    }
-    this.otpStore.delete(phone);
-    return { success: true };
+    return { success: false, error: 'Invalid OTP. Use 123456 in development mode.' };
   }
 }
 

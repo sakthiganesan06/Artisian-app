@@ -99,9 +99,11 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[AUTH] Verify OTP error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('[AUTH] Verify OTP error:', errorMessage, errorStack);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: errorMessage },
       { status: 500 }
     );
   }
