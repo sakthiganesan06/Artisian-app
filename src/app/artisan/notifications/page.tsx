@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTranslation, getActiveLanguage } from '@/lib/i18n/translations';
 
 interface Notification {
   id: string;
@@ -16,10 +17,14 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState('en');
 
   useEffect(() => {
+    setLanguage(getActiveLanguage());
     fetchNotifications();
   }, []);
+
+  const t = getTranslation(language);
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -57,7 +62,7 @@ export default function NotificationsPage() {
     return (
       <div className="page-center">
         <div className="spinner" />
-        <p className="loading-text">Loading notifications...</p>
+        <p className="loading-text">{t.loading}</p>
       </div>
     );
   }
@@ -66,22 +71,29 @@ export default function NotificationsPage() {
     <div style={{ background: 'var(--color-bg)', minHeight: '100vh' }}>
       <nav className="navbar">
         <div className="navbar-content">
-          <a className="navbar-brand" href="/artisan/home">🎨 Artisan Portal</a>
+          <a className="navbar-brand" href="/artisan/home">🎨 {t.appTitle}</a>
           <div className="navbar-links">
-            <a className="navbar-link" href="/artisan/home">Dashboard</a>
-            <a className="navbar-link" href="/artisan/orders">Orders</a>
+            <a className="navbar-link" href="/artisan/home">{t.dashboard}</a>
+            <a className="navbar-link" href="/artisan/orders">{t.orders}</a>
+            <a className="navbar-link active" href="/artisan/notifications">{t.notifications}</a>
+            <a className="navbar-link" href="/artisan/products/new">{t.addProductBtn}</a>
           </div>
         </div>
       </nav>
 
       <div className="container container-md" style={{ paddingTop: 'var(--space-8)', paddingBottom: 'var(--space-12)' }}>
-        <h1 style={{ marginBottom: 'var(--space-6)' }}>Notifications</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+          <h1 style={{ margin: 0 }}>{t.notificationsTitle}</h1>
+          <button className="btn btn-secondary btn-sm" onClick={() => router.push('/artisan/home')}>
+            ← {t.back}
+          </button>
+        </div>
 
         {notifications.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🔔</div>
-            <div className="empty-state-title">No notifications</div>
-            <div className="empty-state-text">Notifications about orders and account events will appear here</div>
+            <div className="empty-state-title">{t.noNotifications}</div>
+            <div className="empty-state-text">{t.noNotificationsSubtext}</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -92,6 +104,7 @@ export default function NotificationsPage() {
                 style={{
                   background: n.isRead ? 'var(--color-bg-card)' : 'var(--color-primary-50)',
                   borderColor: n.isRead ? 'var(--color-border-light)' : 'var(--color-primary-200)',
+                  cursor: 'pointer',
                 }}
                 onClick={() => markAsRead(n.id)}
               >
@@ -101,7 +114,7 @@ export default function NotificationsPage() {
                     {new Date(n.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <p style={{ marginTop: 'var(--space-1)', color: 'var(--color-text-secondary)' }}>{n.message}</p>
+                <p style={{ marginTop: 'var(--space-1)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>{n.message}</p>
               </div>
             ))}
           </div>
@@ -110,3 +123,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+

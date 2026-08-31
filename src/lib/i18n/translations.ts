@@ -52,6 +52,7 @@ export interface TranslationDictionary {
   confirmSaveProfile: string;
 
   // Product Creation
+  backToDashboard: string;
   productUploadTitle: string;
   productCreationWizardSubtitle: string;
   photoStepTitle: string;
@@ -61,6 +62,11 @@ export interface TranslationDictionary {
   cameraModalTitle: string;
   captureSnapshot: string;
   closeCamera: string;
+  switchCamera: string;
+  retakePhoto: string;
+  useThisPhoto: string;
+  changePhoto: string;
+  cameraPermissionError: string;
   enhancingPhoto: string;
   voiceStepTitle: string;
   voiceStepSubtitle: string;
@@ -135,6 +141,22 @@ export interface TranslationDictionary {
   quickUpdateStock: string;
   inStockBadge: string;
   outOfStockBadge: string;
+
+  // Received Orders & Notifications
+  receivedOrdersTitle: string;
+  noOrdersReceived: string;
+  noOrdersSubtext: string;
+  orderedProducts: string;
+  buyerLabel: string;
+  contactPhone: string;
+  shippingAddress: string;
+  myProductsAndInventory: string;
+  noProductsYet: string;
+  addFirstProductPrompt: string;
+  addFirstProductBtn: string;
+  notificationsTitle: string;
+  noNotifications: string;
+  noNotificationsSubtext: string;
 }
 
 export const translations: Record<string, TranslationDictionary> = {
@@ -184,6 +206,7 @@ export const translations: Record<string, TranslationDictionary> = {
     storyPlaceholder: 'Tell your story, family tradition, or craft history...',
     confirmSaveProfile: 'Save & Go to Dashboard',
 
+    backToDashboard: 'Back to Dashboard',
     productUploadTitle: 'Add New Handcrafted Product',
     productCreationWizardSubtitle: 'AI-assisted product creation wizard',
     photoStepTitle: 'Take or Upload Product Photos',
@@ -193,6 +216,11 @@ export const translations: Record<string, TranslationDictionary> = {
     cameraModalTitle: 'Live Camera Viewfinder',
     captureSnapshot: '📸 Capture Photo',
     closeCamera: 'Cancel Camera',
+    switchCamera: '🔄 Flip Camera',
+    retakePhoto: '🔄 Retake Photo',
+    useThisPhoto: '✅ Use This Photo',
+    changePhoto: '🔄 Choose Different Photo',
+    cameraPermissionError: 'Camera access was denied or is unavailable. Please allow camera permissions in your browser or select an image file.',
     enhancingPhoto: '✨ Enhancing lighting and studio background with AI...',
     voiceStepTitle: 'Describe Your Product by Voice',
     voiceStepSubtitle: 'Press the microphone and describe your item. Mention what materials you used, dimensions, color, how long it took, and how many items you have ready in stock.',
@@ -265,6 +293,21 @@ export const translations: Record<string, TranslationDictionary> = {
     quickUpdateStock: '📦 Quick Update Stock',
     inStockBadge: 'In Stock',
     outOfStockBadge: 'Out of Stock',
+
+    receivedOrdersTitle: 'Received Orders',
+    noOrdersReceived: 'No orders received yet',
+    noOrdersSubtext: 'Orders placed by retail and B2B buyers will appear here',
+    orderedProducts: 'Ordered Products',
+    buyerLabel: 'Buyer',
+    contactPhone: 'Contact Phone',
+    shippingAddress: 'Delivery Address',
+    myProductsAndInventory: 'My Products & Inventory',
+    noProductsYet: 'No products added yet',
+    addFirstProductPrompt: 'Add your first handicraft product using voice and photos',
+    addFirstProductBtn: '➕ Add Your First Product',
+    notificationsTitle: 'Notifications',
+    noNotifications: 'No notifications',
+    noNotificationsSubtext: 'Notifications about orders and account updates will appear here',
   },
 
   // === TAMIL (தமிழ்) ===
@@ -313,6 +356,7 @@ export const translations: Record<string, TranslationDictionary> = {
     storyPlaceholder: 'உங்கள் கைவினை வரலாறு மற்றும் குடும்ப பாரம்பரியத்தைப் பற்றி பகிருங்கள்...',
     confirmSaveProfile: 'சேமித்து முகப்புக்குச் செல்லவும்',
 
+    backToDashboard: 'முகப்புக்குத் திரும்பு',
     productUploadTitle: 'புதிய கைவினைப் பொருளைச் சேர்க்கவும்',
     productCreationWizardSubtitle: 'AI உதவியுடன் தயாரிப்பு சேர்க்கும் வழிகாட்டி',
     photoStepTitle: 'பொருளின் புகைப்படத்தை எடுக்கவும் அல்லது பதிவேற்றவும்',
@@ -322,6 +366,11 @@ export const translations: Record<string, TranslationDictionary> = {
     cameraModalTitle: 'நேரலை கேமரா காட்சி',
     captureSnapshot: '📸 புகைப்படம் எடு',
     closeCamera: 'கேமராவை மூடு',
+    switchCamera: '🔄 கேமராவை மாற்று',
+    retakePhoto: '🔄 மீண்டும் புகைப்படம் எடு',
+    useThisPhoto: '✅ இந்த புகைப்படத்தைப் பயன்படுத்து',
+    changePhoto: '🔄 வேறு புகைப்படத்தைத் தேர்ந்தெடு',
+    cameraPermissionError: 'கேமரா அனுமதி மறுக்கப்பட்டது அல்லது கேமரா கிடைக்கவில்லை. உலாவியில் கேமரா அனுமதியை இயக்கவும் அல்லது புகைப்படக் கோப்பைத் தேர்ந்தெடுக்கவும்.',
     enhancingPhoto: '✨ AI மூலம் புகைப்படத்தின் பின்னணியை மெருகூட்டுகிறது...',
     voiceStepTitle: 'பொருளைப் பற்றி குரல் மூலம் விவரிக்கவும்',
     voiceStepSubtitle: 'மைக்கை அழுத்தி பொருளைப் பற்றி பேசவும். பயன்படுத்திய பொருட்கள், அளவு, நிறம், செய்ய ஆகும் நேரம் மற்றும் கையிருப்பில் உள்ள எண்ணிக்கையைக் குறிப்பிடவும்.',
@@ -394,6 +443,21 @@ export const translations: Record<string, TranslationDictionary> = {
     quickUpdateStock: '📦 கையிருப்பை புதுப்பி',
     inStockBadge: 'இருப்பில் உள்ளது',
     outOfStockBadge: 'இருப்பு இல்லை',
+
+    receivedOrdersTitle: 'பெறப்பட்ட ஆர்டர்கள்',
+    noOrdersReceived: 'ஆர்டர்கள் எதுவும் இதுவரை பெறப்படவில்லை',
+    noOrdersSubtext: 'வாங்குபவர்களிடமிருந்து வரும் ஆர்டர்கள் இங்கே காட்டப்படும்',
+    orderedProducts: 'ஆர்டர் செய்யப்பட்ட பொருட்கள்',
+    buyerLabel: 'வாங்குபவர்',
+    contactPhone: 'தொடர்பு எண்',
+    shippingAddress: 'டெலிவரி முகவரி',
+    myProductsAndInventory: 'எனது பொருட்கள் & கையிருப்பு',
+    noProductsYet: 'பொருட்கள் எதுவும் இன்னும் சேர்க்கப்படவில்லை',
+    addFirstProductPrompt: 'குரல் மற்றும் புகைப்படங்களைப் பயன்படுத்தி உங்கள் முதல் கைவினைப் பொருளைச் சேர்க்கவும்',
+    addFirstProductBtn: '➕ முதல் பொருளைச் சேர்க்கவும்',
+    notificationsTitle: 'அறிவிப்புகள்',
+    noNotifications: 'அறிவிப்புகள் இல்லை',
+    noNotificationsSubtext: 'புதிய ஆர்டர்கள் மற்றும் கணக்கு பற்றிய அறிவிப்புகள் இங்கே தோன்றும்',
   },
 
   // === HINDI (हिन्दी) ===
@@ -442,6 +506,7 @@ export const translations: Record<string, TranslationDictionary> = {
     storyPlaceholder: 'अपनी पारिवारिक शिल्प परंपरा और कहानी बताएं...',
     confirmSaveProfile: 'सहेजें और डैशबोर्ड पर जाएं',
 
+    backToDashboard: 'डैशबोर्ड पर वापस जाएं',
     productUploadTitle: 'नया हस्तशिल्प उत्पाद जोड़ें',
     productCreationWizardSubtitle: 'AI-सहायक उत्पाद निर्माण विज़ार्ड',
     photoStepTitle: 'उत्पाद की तस्वीर लें या अपलोड करें',
@@ -451,6 +516,11 @@ export const translations: Record<string, TranslationDictionary> = {
     cameraModalTitle: 'लाइव कैमरा दृश्य',
     captureSnapshot: '📸 फोटो खींचें',
     closeCamera: 'कैमरा बंद करें',
+    switchCamera: '🔄 कैमरा बदलें',
+    retakePhoto: '🔄 दोबारा फोटो लें',
+    useThisPhoto: '✅ इस फोटो का उपयोग करें',
+    changePhoto: '🔄 दूसरी फोटो चुनें',
+    cameraPermissionError: 'कैमरा एक्सेस अस्वीकृत या अनुपलब्ध है। कृपया ब्राउज़र में कैमरा अनुमति दें या एक फोटो फ़ाइल चुनें।',
     enhancingPhoto: '✨ AI द्वारा फोटो की रोशनी और स्टूडियो बैकग्राउंड में सुधार...',
     voiceStepTitle: 'आवाज द्वारा उत्पाद का वर्णन करें',
     voiceStepSubtitle: 'माइक दबाएं और अपने उत्पाद के बारे में बताएं। सामग्री, माप, रंग, बनने में लगा समय और उपलब्ध स्टॉक बताएं।',
@@ -523,6 +593,21 @@ export const translations: Record<string, TranslationDictionary> = {
     quickUpdateStock: '📦 स्टॉक अपडेट करें',
     inStockBadge: 'स्टॉक में उपलब्ध',
     outOfStockBadge: 'स्टॉक समाप्त',
+
+    receivedOrdersTitle: 'प्राप्त ऑर्डर',
+    noOrdersReceived: 'अभी तक कोई ऑर्डर प्राप्त नहीं हुआ',
+    noOrdersSubtext: 'ग्राहकों द्वारा दिए गए ऑर्डर यहाँ दिखाई देंगे',
+    orderedProducts: 'ऑर्डर किए गए उत्पाद',
+    buyerLabel: 'खरीदार',
+    contactPhone: 'संपर्क फोन',
+    shippingAddress: 'डिलीवरी का पता',
+    myProductsAndInventory: 'मेरे उत्पाद और स्टॉक',
+    noProductsYet: 'अभी तक कोई उत्पाद नहीं जोड़ा गया',
+    addFirstProductPrompt: 'आवाज और तस्वीरों के साथ अपना पहला हस्तशिल्प उत्पाद जोड़ें',
+    addFirstProductBtn: '➕ अपना पहला उत्पाद जोड़ें',
+    notificationsTitle: 'सूचनाएं',
+    noNotifications: 'कोई सूचना नहीं',
+    noNotificationsSubtext: 'ऑर्डर और अपडेट से संबंधित सूचनाएं यहाँ दिखेंगी',
   },
 
   // === TELUGU (తెలుగు) ===
@@ -571,6 +656,7 @@ export const translations: Record<string, TranslationDictionary> = {
     storyPlaceholder: 'మీ చేతివృత్తి చరిత్రను పంచుకోండి...',
     confirmSaveProfile: 'సేవ్ చేసి డ్యాష్‌బోర్డ్‌కు వెళ్లండి',
 
+    backToDashboard: 'డ్యాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి',
     productUploadTitle: 'కొత్త ఉత్పత్తిని జోడించండి',
     productCreationWizardSubtitle: 'AI-సహాయక ఉత్పత్తి తయారీ విజార్డ్',
     photoStepTitle: 'ఉత్పత్తి ఫోటో తీయండి లేదా అప్‌లోడ్ చేయండి',
@@ -580,6 +666,11 @@ export const translations: Record<string, TranslationDictionary> = {
     cameraModalTitle: 'లైవ్ కెమెరా వీక్షణ',
     captureSnapshot: '📸 ఫోటో తీయండి',
     closeCamera: 'కెమెరా మూసివేయండి',
+    switchCamera: '🔄 కెమెరా మార్చండి',
+    retakePhoto: '🔄 మళ్లీ ఫోటో తీయండి',
+    useThisPhoto: '✅ ఈ ఫోటోను ఉపయోగించండి',
+    changePhoto: '🔄 మరొక ఫోటోను ఎంచుకోండి',
+    cameraPermissionError: 'కెమెరా యాక్సెస్ నిరాకరించబడింది లేదా అందుబాటులో లేదు. దయచేసి కెమెరా అనుమతిని ప్రారంభించండి లేదా ఫోటో ఫైల్‌ను ఎంచుకోండి.',
     enhancingPhoto: '✨ AI తో ఫోటో నాణ్యత మెరుగుపరుస్తోంది...',
     voiceStepTitle: 'వస్తువు వివరాలను నోటితో చెప్పండి',
     voiceStepSubtitle: 'మైక్ నొక్కి వస్తువు తయారీ, కొలతలు, రంగులు మరియు అందుబాటులో ఉన్న స్టాక్ గురించి మాట్లాడండి.',
@@ -652,6 +743,21 @@ export const translations: Record<string, TranslationDictionary> = {
     quickUpdateStock: '📦 స్టాక్ అప్‌డేట్',
     inStockBadge: 'స్టాక్‌లో ఉంది',
     outOfStockBadge: 'స్టాక్ ముగిసింది',
+
+    receivedOrdersTitle: 'స్వీకరించిన ఆర్డర్లు',
+    noOrdersReceived: 'ఇంకా ఎలాంటి ఆర్డర్లు రాలేదు',
+    noOrdersSubtext: 'కొనుగోలుదారులు చేసిన ఆర్డర్లు ఇక్కడ కనిపిస్తాయి',
+    orderedProducts: 'ఆర్డర్ చేసిన ఉత్పత్తులు',
+    buyerLabel: 'కొనుగోలుదారు',
+    contactPhone: 'సంప్రదింపు ఫోన్',
+    shippingAddress: 'డెలివరీ చిరునామా',
+    myProductsAndInventory: 'నా ఉత్పత్తులు & నిల్వ',
+    noProductsYet: 'ఇంకా ఉత్పత్తులు జోడించబడలేదు',
+    addFirstProductPrompt: 'వాయిస్ మరియు ఫోటోలతో మీ మొదటి ఉత్పత్తిని జోడించండి',
+    addFirstProductBtn: '➕ మొదటి ఉత్పత్తిని జోడించండి',
+    notificationsTitle: 'నోటిಫಿಕేషన్లు',
+    noNotifications: 'నోటిఫికేషన్లు లేవు',
+    noNotificationsSubtext: 'ఆర్డర్ నోటిఫికేషన్లు ఇక్కడ కనిపిస్తాయి',
   },
 
   // === KANNADA (ಕನ್ನಡ) ===
@@ -700,6 +806,7 @@ export const translations: Record<string, TranslationDictionary> = {
     storyPlaceholder: 'ನಿಮ್ಮ ಕುಟುಂಬದ ಕಲಾ ಪರಂಪರೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ...',
     confirmSaveProfile: 'ಉಳಿಸಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
 
+    backToDashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ',
     productUploadTitle: 'ಹೊಸ ಕರಕುಶಲ ಉತ್ಪನ್ನವನ್ನು ಸೇರಿಸಿ',
     productCreationWizardSubtitle: 'AI-ಸಹಾಯದ ಉತ್ಪನ್ನ ಸೇರ್ಪಡೆ ವಿಝಾರ್ಡ್',
     photoStepTitle: 'ಉತ್ಪನ್ನದ ಫೋಟೋ ತೆಗೆದುಕೊಳ್ಳಿ ಅಥವಾ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ',
@@ -709,6 +816,11 @@ export const translations: Record<string, TranslationDictionary> = {
     cameraModalTitle: 'ಲೈವ್ ಕ್ಯಾಮೆರಾ ನೋಟ',
     captureSnapshot: '📸 ಫೋಟೋ ತೆಗೆಯಿರಿ',
     closeCamera: 'ಕ್ಯಾಮೆರಾ ಮುಚ್ಚಿ',
+    switchCamera: '🔄 ಕ್ಯಾಮೆರಾ ಬದಲಾಯಿಸಿ',
+    retakePhoto: '🔄 ಮತ್ತೆ ಫೋಟೋ ತೆಗೆಯಿರಿ',
+    useThisPhoto: '✅ ಈ ಫೋಟೋ ಬಳಸಿ',
+    changePhoto: '🔄 ಬೇರೆ ಫೋಟೋ ಆಯ್ಕೆಮಾಡಿ',
+    cameraPermissionError: 'ಕ್ಯಾಮೆರಾ ಪ್ರವೇಶವನ್ನು ನಿರಾಕರಿಸಲಾಗಿದೆ ಅಥವಾ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಕ್ಯಾಮೆರಾ ಅನುಮತಿಯನ್ನು ನೀಡಿ ಅಥವಾ ಫೋಟೋ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.',
     enhancingPhoto: '✨ AI ನೊಂದಿಗೆ ಫೋಟೋ ಗುಣಮಟ್ಟ ಸುಧಾರಿಸಲಾಗುತ್ತಿದೆ...',
     voiceStepTitle: 'ಉತ್ಪನ್ನದ ವಿವರಗಳನ್ನು ಧ್ವನಿಯ ಮೂಲಕ ವಿವರಿಸಿ',
     voiceStepSubtitle: 'ಮೈಕ್ ಒತ್ತಿ ಉತ್ಪನ್ನದ ವಸ್ತುಗಳು, ಅಳತೆ, ಬಣ್ಣ, ಸಮಯ ಮತ್ತು ಸ್ಟಾಕ್ ಬಗ್ಗೆ ಮಾತನಾಡಿ.',
@@ -781,6 +893,21 @@ export const translations: Record<string, TranslationDictionary> = {
     quickUpdateStock: '📦 ಸ್ಟಾಕ್ ನವೀಕರಣ',
     inStockBadge: 'ಸ್ಟಾಕ್‌ನಲ್ಲಿದೆ',
     outOfStockBadge: 'ಸ್ಟಾಕ್ ಮುಗಿದಿದೆ',
+
+    receivedOrdersTitle: 'ಸ್ವೀಕರಿಸಿದ ಆರ್ಡರ್‌ಗಳು',
+    noOrdersReceived: 'ಇನ್ನೂ ಯಾವುದೇ ಆರ್ಡರ್‌ಗಳು ಸ್ವೀಕರಿಸಲಾಗಿಲ್ಲ',
+    noOrdersSubtext: 'ಗ್ರಾಹಕರು ನೀಡಿದ ಆರ್ಡರ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ',
+    orderedProducts: 'ಆರ್ಡರ್ ಮಾಡಿದ ಉತ್ಪನ್ನಗಳು',
+    buyerLabel: 'ಖರೀದಿದಾರ',
+    contactPhone: 'ಸಂಪರ್ಕ ಸಂಖ್ಯೆ',
+    shippingAddress: 'ವಿತರಣಾ ವಿಳಾಸ',
+    myProductsAndInventory: 'ನನ್ನ ಉತ್ಪನ್ನಗಳು ಮತ್ತು ದಾಸ್ತಾನು',
+    noProductsYet: 'ಇನ್ನೂ ಯಾವುದೇ ಉತ್ಪನ್ನ ಸೇರಿಸಲಾಗಿಲ್ಲ',
+    addFirstProductPrompt: 'ಧ್ವನಿ ಮತ್ತು ಫೋಟೋಗಳ ಮೂಲಕ ನಿಮ್ಮ ಮೊದಲ ಉತ್ಪನ್ನವನ್ನು ಸೇರಿಸಿ',
+    addFirstProductBtn: '➕ ಮೊದಲ ಉತ್ಪನ್ನ ಸೇರಿಸಿ',
+    notificationsTitle: 'ಸೂಚನೆಗಳು',
+    noNotifications: 'ಯಾವುದೇ ಸೂಚನೆಗಳಿಲ್ಲ',
+    noNotificationsSubtext: 'ಆರ್ಡರ್ ಸಂಬಂಧಿತ ಸೂಚನೆಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ',
   },
 
   // === MALAYALAM (മലയാളം) ===
@@ -829,6 +956,7 @@ export const translations: Record<string, TranslationDictionary> = {
     storyPlaceholder: 'നിങ്ങളുടെ പാരമ്പര്യ കരകൗശല ചരിത്രം പങ്കുവെക്കുക...',
     confirmSaveProfile: 'സംരക്ഷിച്ച് ഡാഷ്‌ബോർഡിലേക്ക് പോകുക',
 
+    backToDashboard: 'ഡാഷ്‌ബോർഡിലേക്ക് മടങ്ങുക',
     productUploadTitle: 'പുതിയ ഉൽപ്പന്നം ചേർക്കുക',
     productCreationWizardSubtitle: 'AI-സഹായത്തോടെ ഉൽപ്പന്നം ചേർക്കുന്ന വിസാർഡ്',
     photoStepTitle: 'ഉൽപ്പന്നത്തിന്റെ ഫോട്ടോ എടുക്കുക അല്ലെങ്കിൽ അപ്‌ലോഡ് ചെയ്യുക',
@@ -838,6 +966,11 @@ export const translations: Record<string, TranslationDictionary> = {
     cameraModalTitle: 'തത്സമയ ക്യാമറ കാഴ്ച്ച',
     captureSnapshot: '📸 ഫോട്ടോ എടുക്കുക',
     closeCamera: 'ക്യാമറ അടയ്ക്കുക',
+    switchCamera: '🔄 ക്യാമറ മാറ്റുക',
+    retakePhoto: '🔄 വീണ്ടും ഫോട്ടോ എടുക്കുക',
+    useThisPhoto: '✅ ഈ ഫോട്ടോ ഉപയോഗിക്കുക',
+    changePhoto: '🔄 മറ്റൊരു ഫോട്ടോ തിരഞ്ഞെടുക്കുക',
+    cameraPermissionError: 'ക്യാമറ ആക്‌സസ് നിരസിച്ചു അല്ലെങ്കിൽ ലഭ്യമല്ല. ബ്രൗസറിൽ ക്യാമറ അനുമതി നൽകുക അല്ലെങ്കിൽ ഒരു ഫോട്ടോ ഫയൽ തിരഞ്ഞെടുക്കുക.',
     enhancingPhoto: '✨ AI ഉപയോഗിച്ച് ഫോട്ടോ മിഴിവ് വർദ്ധിപ്പിക്കുന്നു...',
     voiceStepTitle: 'ഉൽപ്പന്ന വിവരങ്ങൾ ശബ്ദത്തിലൂടെ പറയുക',
     voiceStepSubtitle: 'മൈക്ക് അമർത്തി സാധനത്തിന്റെ നിർമ്മാണ വസ്തുക്കൾ, വലിപ്പം, സമയം, സ്റ്റോക്ക് എന്നിവ പറയുക.',
@@ -910,6 +1043,21 @@ export const translations: Record<string, TranslationDictionary> = {
     quickUpdateStock: '📦 സ്റ്റോക്ക് പുതുക്കുക',
     inStockBadge: 'സ്റ്റോക്കിലുണ്ട്',
     outOfStockBadge: 'സ്റ്റോക്ക് തീർന്നു',
+
+    receivedOrdersTitle: 'ലഭിച്ച ഓർഡറുകൾ',
+    noOrdersReceived: 'ഇതുവരെ ഓർഡറുകൾ ഒന്നും ലഭിച്ചിട്ടില്ല',
+    noOrdersSubtext: 'ഉപഭോക്താക്കൾ നൽകുന്ന ഓർഡറുകൾ ഇവിടെ കാണാം',
+    orderedProducts: 'ഓർഡർ ചെയ്ത ഉൽപ്പന്നങ്ങൾ',
+    buyerLabel: 'വാങ്ങുന്നയാൾ',
+    contactPhone: 'ഫോൺ നമ്പർ',
+    shippingAddress: 'ഡെലിവറി വിലാസം',
+    myProductsAndInventory: 'എന്റെ ഉൽപ്പന്നങ്ങളും സ്റ്റോക്കും',
+    noProductsYet: 'ഉൽപ്പന്നങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല',
+    addFirstProductPrompt: 'ശബ്ദവും ഫോട്ടോകളും ഉപയോഗിച്ച് ആദ്യ ഉൽപ്പന്നം ചേർക്കുക',
+    addFirstProductBtn: '➕ ആദ്യ ഉൽപ്പന്നം ചേർക്കുക',
+    notificationsTitle: 'അറിയിപ്പുകൾ',
+    noNotifications: 'അറിയിപ്പുകൾ ഒന്നുമില്ല',
+    noNotificationsSubtext: 'ഓർഡർ സംബന്ധിച്ച അറിയിപ്പുകൾ ഇവിടെ കാണാം',
   },
 };
 

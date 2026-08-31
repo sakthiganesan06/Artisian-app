@@ -7,6 +7,7 @@ import { orderCreateSchema } from '@/lib/validations';
 import { calculateOrderTotal, paisaToRupees } from '@/lib/pricing/pricing-engine';
 import { calculateDeliveryEstimate } from '@/lib/delivery/delivery-service';
 import { notifyArtisanNewOrder } from '@/lib/services/notification-service';
+import { getSession } from '@/lib/auth/session';
 import { customAlphabet } from 'nanoid';
 
 const generateOrderId = customAlphabet('23456789ABCDEFGHJKMNPQRSTUVWXYZ', 5);
@@ -49,6 +50,12 @@ export async function POST(request: NextRequest) {
 
       if (!product || product.status !== 'PUBLISHED') {
         throw new Error('Product is not available for purchase');
+      }
+
+      // Prevent artisan from placing orders on their own products
+      const session = await getSession();
+      if (session && session.userId === product.artisan.userId) {
+        throw new Error('Artisans cannot place orders on their own products. Please use the artisan portal to manage inventory.');
       }
 
       // 3. Validate MOQ for B2B
@@ -251,9 +258,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ order });
     }
 
+    const session = await getSession();
     const where: Record<string, unknown> = {};
     if (artisanUserId) {
       where.artisanUserId = artisanUserId;
+    } else if (session?.userId) {
+      where.artisanUserId = session.userId;
     }
 
     const orders = await prisma.order.findMany({

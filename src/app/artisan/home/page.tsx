@@ -250,7 +250,8 @@ export default function ArtisanHomePage() {
               ))}
             </select>
 
-            <a className="navbar-link" href="/marketplace">🛍️ {t.marketplace}</a>
+            <a className="navbar-link" href="/artisan/orders">📦 {t.orders}</a>
+            <a className="navbar-link" href="/artisan/products/new">➕ {t.addProductBtn}</a>
             <a className="navbar-link" href="/artisan/notifications" style={{ position: 'relative' }}>
               🔔
               {unreadNotifs > 0 && (
@@ -396,21 +397,21 @@ export default function ArtisanHomePage() {
             onClick={() => router.push('/artisan/products/new')}
             style={{ flex: '1 1 200px' }}
           >
-            {t.addProductBtn}
+            ➕ {t.addProductBtn}
           </button>
           <button
             className="btn btn-secondary btn-lg"
             onClick={() => router.push('/artisan/orders')}
             style={{ flex: '1 1 200px' }}
           >
-            {t.viewOrdersBtn}
+            📦 {t.viewOrdersBtn}
           </button>
           <button
             className="btn btn-secondary btn-lg"
-            onClick={() => router.push('/marketplace')}
+            onClick={() => router.push('/artisan/notifications')}
             style={{ flex: '1 1 200px' }}
           >
-            🛍️ {t.marketplace}
+            🔔 {t.notifications}
           </button>
         </div>
 
@@ -418,7 +419,7 @@ export default function ArtisanHomePage() {
         {stockEditProduct && (
           <div className="loading-overlay" style={{ background: 'rgba(0,0,0,0.7)' }}>
             <div className="card card-body" style={{ width: '100%', maxWidth: '420px', background: 'var(--color-surface)' }}>
-              <h3>📦 Update Stock Availability</h3>
+              <h3>{t.updateStockModalTitle}</h3>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
                 Product: <strong>{stockEditProduct.title}</strong>
               </p>
@@ -436,10 +437,10 @@ export default function ArtisanHomePage() {
 
               <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
                 <button className="btn btn-secondary" onClick={() => setStockEditProduct(null)}>
-                  Cancel
+                  {t.cancel}
                 </button>
                 <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSaveStock} disabled={stockUpdating}>
-                  {stockUpdating ? 'Saving Stock...' : 'Save Stock Quantity'}
+                  {stockUpdating ? t.loading : t.save}
                 </button>
               </div>
             </div>
@@ -447,20 +448,20 @@ export default function ArtisanHomePage() {
         )}
 
         {/* Products */}
-        <h2 style={{ marginBottom: 'var(--space-4)' }}>My Products & Inventory</h2>
+        <h2 style={{ marginBottom: 'var(--space-4)' }}>{t.myProductsAndInventory}</h2>
 
         {products.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🎨</div>
-            <div className="empty-state-title">No products yet</div>
+            <div className="empty-state-title">{t.noProductsYet}</div>
             <div className="empty-state-text">
-              Add your first product using voice and photos
+              {t.addFirstProductPrompt}
             </div>
             <button
               className="btn btn-primary btn-lg"
               onClick={() => router.push('/artisan/products/new')}
             >
-              ➕ Add Your First Product
+              {t.addFirstProductBtn}
             </button>
           </div>
         ) : (

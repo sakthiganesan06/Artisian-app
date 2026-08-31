@@ -75,10 +75,25 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   } | null>(null);
   const [error, setError] = useState('');
 
+  const [isArtisanOwner, setIsArtisanOwner] = useState(false);
+
   useEffect(() => {
+    checkSessionAndOwner();
     fetchProduct();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const checkSessionAndOwner = async () => {
+    try {
+      const res = await fetch('/api/auth/session');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user?.role === 'ARTISAN') {
+          setIsArtisanOwner(true);
+        }
+      }
+    } catch {}
+  };
 
   const fetchProduct = async () => {
     setLoading(true);
@@ -360,9 +375,55 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {product.priceFormatted}
             </div>
 
-            <p style={{ fontSize: 'var(--text-base)', marginBottom: 'var(--space-4)', color: 'var(--color-text-secondary)' }}>
-              {product.shortDescription || product.longDescription}
-            </p>
+            {/* Multilingual Product Story & Description */}
+            <div className="card card-body" style={{ marginBottom: 'var(--space-6)', background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+                <h4 style={{ margin: 0 }}>📖 Product Story & Details</h4>
+                <span className="badge badge-primary" style={{ fontSize: 'var(--text-xs)' }}>
+                  Multilingual
+                </span>
+              </div>
+
+              {product.shortDescription && (
+                <div style={{
+                  padding: 'var(--space-3)',
+                  background: 'var(--color-bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: 'var(--space-4)',
+                  fontSize: 'var(--text-sm)',
+                  color: 'var(--color-text)',
+                  fontWeight: 500,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-line',
+                }}>
+                  {product.shortDescription}
+                </div>
+              )}
+
+              {product.longDescription && (
+                <div style={{
+                  fontSize: 'var(--text-sm)',
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: 1.8,
+                  whiteSpace: 'pre-line',
+                }}>
+                  {product.longDescription}
+                </div>
+              )}
+
+              {product.highlights && product.highlights.length > 0 && (
+                <div style={{ marginTop: 'var(--space-4)', borderTop: '1px solid var(--color-border-light)', paddingTop: 'var(--space-3)' }}>
+                  <strong style={{ fontSize: 'var(--text-xs)', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
+                    Key Highlights
+                  </strong>
+                  <ul style={{ margin: 'var(--space-2) 0 0 var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text)' }}>
+                    {product.highlights.map((hl, idx) => (
+                      <li key={idx} style={{ marginBottom: '4px' }}>{hl}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
 
             {/* Product Specifications */}
             <div className="card card-body" style={{ marginBottom: 'var(--space-6)', background: 'var(--color-bg-secondary)' }}>
@@ -377,8 +438,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            {/* ORDER FLOW */}
-            {!product.inStock ? (
+            {/* ORDER FLOW OR ARTISAN VIEW */}
+            {isArtisanOwner ? (
+              <div className="card card-body" style={{ background: 'rgba(99, 102, 241, 0.06)', border: '1px solid var(--color-primary-light)', padding: 'var(--space-5)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-2)' }}>
+                  <span style={{ fontSize: '1.25rem' }}>🎨</span>
+                  <h4 style={{ margin: 0, color: 'var(--color-primary-dark)' }}>Artisan Catalog View</h4>
+                </div>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)', lineHeight: 1.6 }}>
+                  You are viewing your handcrafted product in the marketplace catalog. Customer ordering is reserved for retail and B2B buyers. To update pricing or stock, visit your artisan dashboard.
+                </p>
+                <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary" onClick={() => router.push('/artisan/home')}>
+                    ← Go to Artisan Dashboard
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => router.push('/artisan/orders')}>
+                    📦 View Received Orders
+                  </button>
+                </div>
+              </div>
+            ) : !product.inStock ? (
               <div className="alert alert-error">
                 This product is currently out of stock.
               </div>

@@ -39,7 +39,7 @@ export async function createNotification(
 }
 
 /**
- * Create order notification for artisan with full order context and optional SMS
+ * Create order notification for artisan with full order context in their selected language and optional SMS
  */
 export async function notifyArtisanNewOrder(params: {
   artisanUserId: string;
@@ -53,8 +53,51 @@ export async function notifyArtisanNewOrder(params: {
 }): Promise<void> {
   const isBulk = params.orderType === 'B2B';
   const totalRupees = Math.round(params.orderTotal / 100);
-  const title = isBulk ? '🚨 New Bulk Order Received!' : '🛍️ New Order Received!';
-  const message = `${isBulk ? 'Bulk order' : 'Order'} #${params.orderId} for ${params.productName} (Qty: ${params.quantity}) totaling ₹${totalRupees.toLocaleString('en-IN')}`;
+
+  // Retrieve artisan's selected language
+  let lang = 'en';
+  try {
+    const profile = await prisma.artisanProfile.findUnique({
+      where: { userId: params.artisanUserId },
+      select: { language: true },
+    });
+    if (profile?.language) {
+      lang = profile.language;
+    }
+  } catch (err) {
+    console.warn('[NOTIF] Could not load artisan language preference, defaulting to en:', err);
+  }
+
+  let title = '';
+  let message = '';
+
+  switch (lang) {
+    case 'ta':
+      title = isBulk ? '🚨 புதிய மொத்த ஆர்டர் வந்துள்ளது!' : '🛍️ புதிய ஆர்டர் வந்துள்ளது!';
+      message = `ஆர்டர் #${params.orderId}: ${params.productName} (${params.quantity} எண்ணிக்கை) - மொத்தம் ₹${totalRupees.toLocaleString('en-IN')}.`;
+      break;
+    case 'hi':
+      title = isBulk ? '🚨 नया थोक ऑर्डर प्राप्त हुआ!' : '🛍️ नया ऑर्डर प्राप्त हुआ!';
+      message = `ऑर्डर #${params.orderId}: ${params.productName} (${params.quantity} पीस) - कुल ₹${totalRupees.toLocaleString('en-IN')}।`;
+      break;
+    case 'te':
+      title = isBulk ? '🚨 కొత్త బల్క్ ఆర్డర్ వచ్చింది!' : '🛍️ కొత్త ఆర్డర్ వచ్చింది!';
+      message = `ఆర్డర్ #${params.orderId}: ${params.productName} (${params.quantity} యూనిట్లు) - మొత్తం ₹${totalRupees.toLocaleString('en-IN')}.`;
+      break;
+    case 'kn':
+      title = isBulk ? '🚨 ಹೊಸ ಬಲ್ಕ್ ಆರ್ಡರ್ ಬಂದಿದೆ!' : '🛍️ ಹೊಸ ಆರ್ಡರ್ ಬಂದಿದೆ!';
+      message = `ಆರ್ಡರ್ #${params.orderId}: ${params.productName} (${params.quantity} ಯೂನಿಟ್) - ಒಟ್ಟು ₹${totalRupees.toLocaleString('en-IN')}.`;
+      break;
+    case 'ml':
+      title = isBulk ? '🚨 പുതിയ ബൾക്ക് ഓർഡർ ലഭിച്ചു!' : '🛍️ പുതിയ ഓർഡർ ലഭിച്ചു!';
+      message = `ഓർഡർ #${params.orderId}: ${params.productName} (${params.quantity} എണ്ണം) - ആകെ ₹${totalRupees.toLocaleString('en-IN')}.`;
+      break;
+    case 'en':
+    default:
+      title = isBulk ? '🚨 New Bulk Order Received!' : '🛍️ New Order Received!';
+      message = `${isBulk ? 'Bulk order' : 'Order'} #${params.orderId} for ${params.productName} (Qty: ${params.quantity}) totaling ₹${totalRupees.toLocaleString('en-IN')}`;
+      break;
+  }
 
   await createNotification(
     params.artisanUserId,
@@ -82,7 +125,7 @@ export async function notifyArtisanNewOrder(params: {
     if (artisanUser?.phone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
       const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
       await twilio.messages.create({
-        body: `[Artisan Marketplace] New ${isBulk ? 'Bulk ' : ''}Order #${params.orderId}! ${params.quantity}x ${params.productName} (₹${totalRupees}). Check your dashboard now.`,
+        body: `[Artisan Marketplace] ${title} #${params.orderId}! ${params.quantity}x ${params.productName} (₹${totalRupees}).`,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: artisanUser.phone,
       });

@@ -1,7 +1,6 @@
 // ============================================
 // Image Processing Service
-// Providers: Remove.bg API (optional) + Sharp.js Studio Engine (local)
-// PhotoRoom removed completely
+// Providers: Remove.bg AI Cutout + Sharp Studio Composite Engine
 // ============================================
 
 export interface ImageProcessingResult {
@@ -17,7 +16,7 @@ export interface ImageProcessingProvider {
 }
 
 // ============================================
-// Remove.bg API Provider (background removal)
+// Remove.bg API + Sharp Studio Composite Engine
 // ============================================
 
 class RemoveBgProvider implements ImageProcessingProvider {
@@ -26,69 +25,104 @@ class RemoveBgProvider implements ImageProcessingProvider {
   constructor() {
     const apiKey = process.env.REMOVE_BG_API_KEY;
     if (!apiKey) {
-      throw new Error(
-        'REMOVE_BG_API_KEY environment variable is not set.'
-      );
+      throw new Error('REMOVE_BG_API_KEY environment variable is not set.');
     }
     this.apiKey = apiKey;
   }
 
   async processImage(imageBuffer: Buffer, mimeType: string): Promise<ImageProcessingResult> {
-    const formData = new FormData();
-    const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
-    formData.append('image_file', blob, 'image.jpg');
-    formData.append('size', 'auto');
-    formData.append('bg_color', 'ffffff'); // Pure white e-commerce background
+    const sharp = (await import('sharp')).default;
+    const targetSize = 1200;
 
-    const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-      method: 'POST',
-      headers: {
-        'X-Api-Key': this.apiKey,
-      },
-      body: formData,
-    });
+    let cutoutPngBuffer: Buffer | null = null;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Remove.bg API error: ${response.status} - ${errorText}`);
+    // Call Remove.bg with size: 'preview' (works seamlessly on free tier and paid accounts)
+    try {
+      const formData = new FormData();
+      const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
+      formData.append('image_file', blob, 'image.jpg');
+      formData.append('size', 'preview');
+      formData.append('format', 'png');
+
+      const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+        method: 'POST',
+        headers: {
+          'X-Api-Key': this.apiKey,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        cutoutPngBuffer = Buffer.from(await response.arrayBuffer());
+      } else {
+        const errorText = await response.text();
+        console.warn(`[IMAGE] Remove.bg response error ${response.status}: ${errorText}`);
+      }
+    } catch (apiErr) {
+      console.warn('[IMAGE] Remove.bg fetch error:', apiErr);
     }
 
-    const processedBuffer = Buffer.from(await response.arrayBuffer());
+    // If cutout was successful, composite cleanly onto pure white studio canvas
+    if (cutoutPngBuffer) {
+      try {
+        const resizedCutout = await sharp(cutoutPngBuffer)
+          .resize(1020, 1020, { fit: 'inside' })
+          .toBuffer();
 
-    return {
-      processedBuffer,
-      provider: 'remove_bg',
-    };
+        const processedBuffer = await sharp({
+          create: {
+            width: targetSize,
+            height: targetSize,
+            channels: 4,
+            background: { r: 255, g: 255, b: 255, alpha: 1 },
+          },
+        })
+          .composite([{ input: resizedCutout, gravity: 'center' }])
+          .modulate({
+            brightness: 1.04,
+            saturation: 1.10,
+          })
+          .sharpen({ sigma: 1.1 })
+          .jpeg({ quality: 92 })
+          .toBuffer();
+
+        return {
+          processedBuffer,
+          width: targetSize,
+          height: targetSize,
+          provider: 'remove_bg_studio_composite',
+        };
+      } catch (sharpCompositeErr) {
+        console.warn('[IMAGE] Sharp composite on cutout failed:', sharpCompositeErr);
+      }
+    }
+
+    // Fallback: Local Sharp studio engine
+    console.log('[IMAGE] Using Sharp local fallback engine');
+    const sharpEngine = new SharpStudioEngine();
+    return sharpEngine.processImage(imageBuffer, mimeType);
   }
 }
 
 // ============================================
 // Sharp.js Studio Engine (local e-commerce processing)
-// No API key required — works 100% out of the box!
-// Performs:
-// - Studio lighting boost (modulate brightness + saturation)
-// - E-commerce canvas centering (1200x1200 square)
-// - Pure white background flattening
-// - Unsharp mask sharpening
 // ============================================
 
 class SharpStudioEngine implements ImageProcessingProvider {
   async processImage(imageBuffer: Buffer, _mimeType: string): Promise<ImageProcessingResult> {
     const sharp = (await import('sharp')).default;
-
     const targetSize = 1200;
 
-    // Process image: studio lighting boost, white background, square padding, sharpening
     const processedBuffer = await sharp(imageBuffer)
       .resize(targetSize, targetSize, {
         fit: 'contain',
         background: { r: 255, g: 255, b: 255, alpha: 1 },
       })
       .modulate({
-        brightness: 1.06,  // Subtle studio lighting boost
-        saturation: 1.12,  // Richer color palette
+        brightness: 1.06,
+        saturation: 1.12,
       })
-      .sharpen({ sigma: 1.2 }) // Product edge crispness
+      .sharpen({ sigma: 1.2 })
       .flatten({ background: { r: 255, g: 255, b: 255 } })
       .jpeg({ quality: 92 })
       .toBuffer();
@@ -107,7 +141,6 @@ class SharpStudioEngine implements ImageProcessingProvider {
 // ============================================
 
 export function getImageProcessor(): ImageProcessingProvider {
-  // Try Remove.bg if configured, otherwise use built-in Sharp Studio Engine
   if (process.env.REMOVE_BG_API_KEY) {
     return new RemoveBgProvider();
   }
@@ -116,5 +149,5 @@ export function getImageProcessor(): ImageProcessingProvider {
 }
 
 export function isImageProcessingConfigured(): boolean {
-  return true; // SharpStudioEngine always works out of the box
+  return true;
 }

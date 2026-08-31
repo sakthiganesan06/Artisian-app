@@ -1,5 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#4f46e5",
+};
 
 export const metadata: Metadata = {
   title: "Artisan Marketplace — AI-Powered Craft Platform",
@@ -13,12 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-      </head>
       <body>
         {children}
       </body>
     </html>
   );
 }
+

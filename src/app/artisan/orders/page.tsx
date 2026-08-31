@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTranslation, getActiveLanguage } from '@/lib/i18n/translations';
 
 interface OrderItem {
   id: string;
@@ -44,10 +45,14 @@ export default function ArtisanOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState('en');
 
   useEffect(() => {
+    setLanguage(getActiveLanguage());
     fetchOrders();
   }, []);
+
+  const t = getTranslation(language);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -76,7 +81,7 @@ export default function ArtisanOrdersPage() {
     return (
       <div className="page-center">
         <div className="spinner" />
-        <p className="loading-text">Loading orders...</p>
+        <p className="loading-text">{t.loading}</p>
       </div>
     );
   }
@@ -85,23 +90,29 @@ export default function ArtisanOrdersPage() {
     <div style={{ background: 'var(--color-bg)', minHeight: '100vh' }}>
       <nav className="navbar">
         <div className="navbar-content">
-          <a className="navbar-brand" href="/artisan/home">🎨 Artisan Portal</a>
+          <a className="navbar-brand" href="/artisan/home">🎨 {t.appTitle}</a>
           <div className="navbar-links">
-            <a className="navbar-link" href="/artisan/home">Dashboard</a>
-            <a className="navbar-link active" href="/artisan/orders">Orders</a>
-            <a className="navbar-link" href="/marketplace">Marketplace</a>
+            <a className="navbar-link" href="/artisan/home">{t.dashboard}</a>
+            <a className="navbar-link active" href="/artisan/orders">{t.orders}</a>
+            <a className="navbar-link" href="/artisan/notifications">{t.notifications}</a>
+            <a className="navbar-link" href="/artisan/products/new">{t.addProductBtn}</a>
           </div>
         </div>
       </nav>
 
       <div className="container" style={{ paddingTop: 'var(--space-8)', paddingBottom: 'var(--space-12)' }}>
-        <h1 style={{ marginBottom: 'var(--space-6)' }}>Received Orders</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-6)', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+          <h1 style={{ margin: 0 }}>{t.receivedOrdersTitle}</h1>
+          <button className="btn btn-secondary btn-sm" onClick={() => router.push('/artisan/home')}>
+            ← {t.back}
+          </button>
+        </div>
 
         {orders.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📦</div>
-            <div className="empty-state-title">No orders received yet</div>
-            <div className="empty-state-text">Orders placed by retail and B2B buyers will appear here</div>
+            <div className="empty-state-title">{t.noOrdersReceived}</div>
+            <div className="empty-state-text">{t.noOrdersSubtext}</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
@@ -128,13 +139,15 @@ export default function ArtisanOrdersPage() {
 
                 {/* Items */}
                 <div style={{ marginBottom: 'var(--space-4)' }}>
-                  <h4 style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>Ordered Products:</h4>
+                  <h4 style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>
+                    {t.orderedProducts}:
+                  </h4>
                   {order.items.map((item) => (
                     <div key={item.id} className="flex-between" style={{ padding: 'var(--space-2) 0', borderBottom: '1px dashed var(--color-border-light)' }}>
                       <div>
-                        <strong>{item.product.title}</strong> × {item.quantity} units
+                        <strong>{item.product.title}</strong> × {item.quantity}
                       </div>
-                      <div>₹{(item.subtotal / 100).toLocaleString('en-IN')}</div>
+                      <div style={{ fontWeight: 600 }}>₹{(item.subtotal / 100).toLocaleString('en-IN')}</div>
                     </div>
                   ))}
                 </div>
@@ -143,15 +156,15 @@ export default function ArtisanOrdersPage() {
                 <div style={{ background: 'var(--color-bg-secondary)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', fontSize: 'var(--text-sm)' }}>
                   {order.orderType === 'RETAIL' && order.buyerProfile && (
                     <div>
-                      <strong>Buyer:</strong> {order.buyerProfile.fullName} ({order.buyerProfile.phone})<br />
-                      <strong>Address:</strong> {order.buyerProfile.address}
+                      <strong>{t.buyerLabel}:</strong> {order.buyerProfile.fullName} ({order.buyerProfile.phone})<br />
+                      <strong>{t.shippingAddress}:</strong> {order.buyerProfile.address}
                     </div>
                   )}
                   {order.orderType === 'B2B' && order.b2bProfile && (
                     <div>
-                      <strong>Business:</strong> {order.b2bProfile.businessName} (GST: {order.b2bProfile.gstNumber})<br />
-                      <strong>Contact Phone:</strong> {order.b2bProfile.contactPhone}<br />
-                      <strong>Address:</strong> {order.b2bProfile.address}
+                      <strong>{t.buyerLabel}:</strong> {order.b2bProfile.businessName} (GST: {order.b2bProfile.gstNumber})<br />
+                      <strong>{t.contactPhone}:</strong> {order.b2bProfile.contactPhone}<br />
+                      <strong>{t.shippingAddress}:</strong> {order.b2bProfile.address}
                     </div>
                   )}
                 </div>
@@ -163,3 +176,4 @@ export default function ArtisanOrdersPage() {
     </div>
   );
 }
+

@@ -78,6 +78,14 @@ export default function NewProductPage() {
 
   // Live Camera Viewfinder State
   const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment');
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
+  const [activeDeviceId, setActiveDeviceId] = useState<string>('');
+  const [shutterFlash, setShutterFlash] = useState(false);
+  const [capturedSnapshotUrl, setCapturedSnapshotUrl] = useState<string | null>(null);
+  const [capturedSnapshotBlob, setCapturedSnapshotBlob] = useState<Blob | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
@@ -122,14 +130,207 @@ export default function NewProductPage() {
   const [loadingMsg, setLoadingMsg] = useState('');
   const [error, setError] = useState('');
 
-  // === DIRECT CAMERA & FILE CAPTURE HANDLERS ===
+  // === LIVE CAMERA & FILE CAPTURE HANDLERS ===
+  const startCameraStream = async (targetDeviceId?: string, facing?: 'environment' | 'user') => {
+    setError('');
+    setCameraReady(false);
+    setCapturedSnapshotBlob(null);
+    if (capturedSnapshotUrl) {
+      URL.revokeObjectURL(capturedSnapshotUrl);
+      setCapturedSnapshotUrl(null);
+    }
+
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError(t.cameraPermissionError);
+      if (fileInputRef.current) fileInputRef.current.click();
+      return;
+    }
+
+    // Stop previous tracks
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+
+    setShowCameraModal(true);
+
+    const facingToUse = facing || cameraFacing;
+    if (facing) setCameraFacing(facing);
+
+    try {
+      let stream: MediaStream | null = null;
+
+      // 1. If explicit deviceId provided, try that first
+      if (targetDeviceId) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: targetDeviceId } },
+            audio: false,
+          });
+        } catch (e) {
+          console.warn('Target deviceId failed, falling back:', e);
+        }
+      }
+
+      // 2. Try with facingMode ideal
+      if (!stream) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: facingToUse },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+            audio: false,
+          });
+        } catch (e) {
+          console.warn('FacingMode ideal failed, falling back to simple video constraint:', e);
+        }
+      }
+
+      // 3. Fallback to generic video: true
+      if (!stream) {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
+
+      mediaStreamRef.current = stream;
+      setCameraStream(stream);
+
+      // Track active device ID and discover all available cameras
+      try {
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          const settings = videoTrack.getSettings();
+          if (settings.deviceId) {
+            setActiveDeviceId(settings.deviceId);
+          }
+        }
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+        setAvailableCameras(videoInputs);
+      } catch (enumErr) {
+        console.warn('enumerateDevices error:', enumErr);
+      }
+
+      // Attach immediately to video element if already mounted
+      if (videoRef.current) {
+        const video = videoRef.current;
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.autoplay = true;
+        video.srcObject = stream;
+        video.play().then(() => setCameraReady(true)).catch((playErr) => {
+          console.warn('Direct video play error:', playErr);
+        });
+      }
+    } catch (err: unknown) {
+      console.error('Camera stream error:', err);
+      stopCameraStream();
+      const errorObj = err as { name?: string };
+      if (errorObj?.name === 'NotAllowedError' || errorObj?.name === 'PermissionDeniedError') {
+        setError(t.cameraPermissionError);
+      } else if (errorObj?.name === 'NotFoundError' || errorObj?.name === 'DevicesNotFoundError') {
+        setError('No camera device detected. Please choose an image file from your device.');
+      } else {
+        setError(t.cameraPermissionError);
+      }
+      // Trigger file selector as direct fallback
+      if (fileInputRef.current) fileInputRef.current.click();
+    }
+  };
+
+  const stopCameraStream = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    setCameraStream(null);
+    setCameraReady(false);
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    if (capturedSnapshotUrl) {
+      URL.revokeObjectURL(capturedSnapshotUrl);
+    }
+    setCapturedSnapshotUrl(null);
+    setCapturedSnapshotBlob(null);
+    setShowCameraModal(false);
+  };
+
+  const switchCameraDevice = async () => {
+    if (availableCameras.length > 1) {
+      const currentIndex = availableCameras.findIndex((d) => d.deviceId === activeDeviceId);
+      const nextIndex = (currentIndex + 1) % availableCameras.length;
+      const nextDevice = availableCameras[nextIndex];
+      if (nextDevice) {
+        setActiveDeviceId(nextDevice.deviceId);
+        await startCameraStream(nextDevice.deviceId);
+        return;
+      }
+    }
+    const nextFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+    setCameraFacing(nextFacing);
+    await startCameraStream(undefined, nextFacing);
+  };
+
+  const captureCameraSnapshot = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+
+    if (!video.videoWidth || video.videoWidth === 0 || video.readyState < 2) {
+      setError('Camera is initializing. Please wait a moment.');
+      return;
+    }
+
+    setShutterFlash(true);
+    setTimeout(() => setShutterFlash(false), 220);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const previewUrl = URL.createObjectURL(blob);
+        setCapturedSnapshotBlob(blob);
+        setCapturedSnapshotUrl(previewUrl);
+      }
+    }, 'image/jpeg', 0.95);
+  };
+
+  const retakeCameraSnapshot = () => {
+    if (capturedSnapshotUrl) {
+      URL.revokeObjectURL(capturedSnapshotUrl);
+    }
+    setCapturedSnapshotUrl(null);
+    setCapturedSnapshotBlob(null);
+    if (videoRef.current && mediaStreamRef.current) {
+      const video = videoRef.current;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.srcObject = mediaStreamRef.current;
+      video.play().catch(console.warn);
+    }
+  };
+
+  const confirmCapturedSnapshot = async () => {
+    if (!capturedSnapshotBlob) return;
+    const file = new File([capturedSnapshotBlob], `product-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+    stopCameraStream();
+    await handleImageSelect(file);
+  };
+
   const triggerCameraCapture = () => {
     setError('');
-    if (cameraInputRef.current) {
-      cameraInputRef.current.click();
-    } else if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    startCameraStream();
   };
 
   const triggerGalleryUpload = () => {
@@ -139,41 +340,50 @@ export default function NewProductPage() {
     }
   };
 
-  const stopCameraStream = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(t => t.stop());
-      mediaStreamRef.current = null;
-    }
-    setShowCameraModal(false);
-  };
-
-  const captureCameraSnapshot = () => {
-    if (!videoRef.current) return;
-    const video = videoRef.current;
-    
-    // Check if video actually has received camera frames
-    if (!video.videoWidth || video.videoWidth === 0 || video.readyState < 2) {
-      setError('Camera is still loading or unavailable. Please use "Choose File / Photo" to select a photo.');
-      stopCameraStream();
-      if (cameraInputRef.current) cameraInputRef.current.click();
-      return;
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(async (blob) => {
-      if (blob) {
-        stopCameraStream();
-        const file = new File([blob], `product-photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        await handleImageSelect(file);
+  // Callback ref to automatically attach stream the instant video element is mounted
+  const attachVideoRef = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+    if (node && mediaStreamRef.current) {
+      node.muted = true;
+      node.defaultMuted = true;
+      node.playsInline = true;
+      node.autoplay = true;
+      if (node.srcObject !== mediaStreamRef.current) {
+        node.srcObject = mediaStreamRef.current;
       }
-    }, 'image/jpeg', 0.92);
-  };
+      node.play().then(() => {
+        setCameraReady(true);
+      }).catch((e) => {
+        console.warn('Video play in attachVideoRef failed:', e);
+      });
+    }
+  }, []);
+
+  // Watch cameraStream state updates to ensure video element is always linked
+  useEffect(() => {
+    if (videoRef.current && cameraStream) {
+      const video = videoRef.current;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.autoplay = true;
+      video.srcObject = cameraStream;
+      video.play().then(() => {
+        setCameraReady(true);
+      }).catch((e) => {
+        console.warn('Video play in cameraStream effect failed:', e);
+      });
+    }
+  }, [cameraStream]);
+
+  // Clean up camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
 
   // 1. Image Upload Handler
   const handleImageSelect = async (file: File) => {
@@ -198,10 +408,11 @@ export default function NewProductPage() {
       const data = await res.json();
       setImageId(data.image.id);
       setOriginalImageUrl(data.image.originalUrl);
+      setProcessedImageUrl('');
       setStep('image_processing');
       
-      // Auto trigger image enhancement
-      processProductImage(data.image.id);
+      // Auto trigger image enhancement, passing the URL explicitly to avoid closure lag
+      processProductImage(data.image.id, data.image.originalUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Image upload failed');
     } finally {
@@ -210,7 +421,8 @@ export default function NewProductPage() {
   };
 
   // 2. AI Image Processing Handler
-  const processProductImage = async (id: string) => {
+  const processProductImage = async (id: string, origUrl?: string) => {
+    const originalUrlToUse = origUrl || originalImageUrl;
     setImageProcessing(true);
     setLoadingMsg('Enhancing your product image (studio lighting & centering)...');
     try {
@@ -225,10 +437,10 @@ export default function NewProductPage() {
       }
 
       const data = await res.json();
-      setProcessedImageUrl(data.image.processedUrl || data.image.originalUrl);
+      setProcessedImageUrl(data.image.processedUrl || originalUrlToUse);
     } catch (err) {
       console.warn('Image processing fallback:', err);
-      setProcessedImageUrl(originalImageUrl);
+      setProcessedImageUrl(originalUrlToUse);
     } finally {
       setImageProcessing(false);
     }
@@ -380,7 +592,12 @@ export default function NewProductPage() {
       const res = await fetch('/api/products/generate-description', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productData: details, transcript: transcript || additionalText, additionalText }),
+        body: JSON.stringify({
+          productData: details,
+          transcript: transcript || additionalText,
+          additionalText,
+          language,
+        }),
       });
 
       if (!res.ok) throw new Error('Description generation failed');
@@ -510,11 +727,90 @@ export default function NewProductPage() {
     }
   };
 
+  // Step navigation handlers
+  const handleGoBack = () => {
+    switch (step) {
+      case 'photo_instructions':
+        router.push('/artisan/home');
+        break;
+      case 'image_processing':
+        setStep('photo_instructions');
+        break;
+      case 'voice_input':
+        setStep('image_processing');
+        break;
+      case 'extraction_review':
+        setStep('voice_input');
+        break;
+      case 'cost_pricing':
+        setStep('extraction_review');
+        break;
+      case 'final_review':
+        setStep('cost_pricing');
+        break;
+      default:
+        router.push('/artisan/home');
+    }
+  };
+
+  const getStepProgressNumber = () => {
+    switch (step) {
+      case 'photo_instructions': return 1;
+      case 'image_processing': return 2;
+      case 'voice_input': return 3;
+      case 'extraction_review': return 4;
+      case 'cost_pricing': return 5;
+      case 'final_review': return 6;
+      default: return 1;
+    }
+  };
+
   // Render Steps
   return (
     <div className="page" style={{ background: 'var(--color-bg)' }}>
-      <div className="container container-md" style={{ paddingTop: 'var(--space-6)' }}>
+      <div className="container container-md" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-10)' }}>
         
+        {/* TOP WIZARD NAVIGATION BAR WITH BACK ARROW */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 'var(--space-4)',
+        }}>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={handleGoBack}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 700,
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-full)',
+              background: 'white',
+              boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            ← {step === 'photo_instructions' ? t.backToDashboard : t.back}
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              fontSize: 'var(--text-xs)',
+              fontWeight: 700,
+              color: 'var(--color-primary-dark)',
+              background: 'rgba(37, 99, 235, 0.1)',
+              padding: '4px 14px',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid rgba(37, 99, 235, 0.2)',
+            }}>
+              Step {getStepProgressNumber()} / 6
+            </span>
+          </div>
+        </div>
+
         {/* Step Header */}
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
           <h2 style={{ fontSize: 'var(--text-2xl)' }}>{t.productUploadTitle}</h2>
@@ -525,36 +821,141 @@ export default function NewProductPage() {
 
         {/* LIVE CAMERA VIEWFINDER MODAL */}
         {showCameraModal && (
-          <div className="loading-overlay" style={{ background: 'rgba(0,0,0,0.92)', color: 'white', zIndex: 1000 }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: '640px', padding: 'var(--space-4)', textAlign: 'center' }}>
-              <h3 style={{ color: 'white', marginBottom: 'var(--space-3)' }}>{t.cameraModalTitle}</h3>
-              
-              <div style={{ position: 'relative', width: '100%', minHeight: '340px', background: '#111', borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  style={{ width: '100%', height: '100%', minHeight: '340px', objectFit: 'cover', display: 'block' }}
-                />
+          <div className="camera-modal-backdrop">
+            <div className="camera-modal-box">
+              {/* Header */}
+              <div className="camera-header-row">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <h3 style={{ margin: 0, fontSize: 'var(--text-lg)', color: '#fff' }}>{t.cameraModalTitle}</h3>
+                  {!capturedSnapshotUrl && (
+                    <span className="camera-live-badge">
+                      <span className="camera-live-dot" /> {cameraReady ? 'LIVE' : 'CONNECTING...'}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ minWidth: '36px', height: '36px', padding: 0, borderRadius: '50%' }}
+                  onClick={stopCameraStream}
+                  title={t.closeCamera}
+                >
+                  ✖
+                </button>
               </div>
 
-              <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button className="btn btn-success btn-lg" style={{ minWidth: '160px' }} onClick={captureCameraSnapshot}>
-                  {t.captureSnapshot}
-                </button>
-                <button
-                  className="btn btn-secondary btn-lg"
-                  onClick={() => {
-                    stopCameraStream();
-                    cameraInputRef.current?.click();
-                  }}
-                >
-                  📁 Choose File / Photo
-                </button>
-                <button className="btn btn-danger btn-lg" onClick={stopCameraStream}>
-                  ✖ {t.closeCamera}
-                </button>
+              {/* Viewfinder Container */}
+              <div className="camera-viewfinder-container">
+                {shutterFlash && <div className="camera-shutter-flash" />}
+
+                {/* Loading indicator until video plays */}
+                {!cameraReady && !capturedSnapshotUrl && (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#0a0f1d',
+                    zIndex: 5,
+                    color: 'white',
+                  }}>
+                    <div className="spinner" style={{ marginBottom: 'var(--space-3)' }} />
+                    <p style={{ margin: 0, fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                      Starting camera feed...
+                    </p>
+                  </div>
+                )}
+
+                {capturedSnapshotUrl ? (
+                  <img
+                    src={capturedSnapshotUrl}
+                    alt="Captured product snapshot"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <>
+                    <video
+                      ref={attachVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="camera-video-feed"
+                      onLoadedMetadata={(e) => {
+                        const v = e.currentTarget;
+                        v.muted = true;
+                        v.play().catch(console.warn);
+                        if (v.videoWidth > 0) setCameraReady(true);
+                      }}
+                      onPlaying={() => setCameraReady(true)}
+                      onCanPlay={(e) => {
+                        e.currentTarget.play().catch(console.warn);
+                      }}
+                    />
+                    <div className="camera-frame-guide">
+                      <div className="camera-corner-tl" />
+                      <div className="camera-corner-tr" />
+                      <div className="camera-corner-bl" />
+                      <div className="camera-corner-br" />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Controls */}
+              <div className="camera-controls-bar">
+                {capturedSnapshotUrl ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-lg"
+                      style={{ flex: 1 }}
+                      onClick={retakeCameraSnapshot}
+                    >
+                      {t.retakePhoto}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-success btn-lg"
+                      style={{ flex: 1.2 }}
+                      onClick={confirmCapturedSnapshot}
+                    >
+                      {t.useThisPhoto}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={switchCameraDevice}
+                      title={t.switchCamera}
+                    >
+                      {availableCameras.length > 1
+                        ? `🔄 (${availableCameras.findIndex((d) => d.deviceId === activeDeviceId) + 1}/${availableCameras.length})`
+                        : t.switchCamera}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-shutter-capture"
+                      onClick={captureCameraSnapshot}
+                      disabled={!cameraReady}
+                    >
+                      {t.captureSnapshot}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        stopCameraStream();
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      📁 {t.uploadFromGallery}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -591,7 +992,7 @@ export default function NewProductPage() {
               }}
             />
 
-            <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap', marginBottom: 'var(--space-4)' }}>
               <button
                 className="btn btn-primary btn-lg"
                 style={{ flex: 1 }}
@@ -610,6 +1011,14 @@ export default function NewProductPage() {
                 {t.uploadFromGallery}
               </button>
             </div>
+
+            <button
+              type="button"
+              className="btn btn-outline btn-full"
+              onClick={() => router.push('/artisan/home')}
+            >
+              ← {t.backToDashboard}
+            </button>
           </div>
         )}
 
@@ -636,13 +1045,25 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            <button
-              className="btn btn-primary btn-lg btn-full"
-              onClick={() => setStep('voice_input')}
-              disabled={imageProcessing}
-            >
-              {t.continue} →
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-secondary btn-lg"
+                style={{ flex: 1 }}
+                onClick={() => setStep('photo_instructions')}
+                disabled={imageProcessing}
+              >
+                ← {t.back}
+              </button>
+
+              <button
+                className="btn btn-primary btn-lg"
+                style={{ flex: 2 }}
+                onClick={() => setStep('voice_input')}
+                disabled={imageProcessing}
+              >
+                {t.continue} →
+              </button>
+            </div>
           </div>
         )}
 
@@ -694,14 +1115,27 @@ export default function NewProductPage() {
               </div>
             )}
 
-            <button
-              className="btn btn-secondary btn-full"
-              style={{ marginTop: 'var(--space-3)' }}
-              onClick={handleManualProceed}
-              disabled={loading || (!transcript && !additionalText)}
-            >
-              {t.proceedWithTypedDetails}
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-lg"
+                style={{ flex: 1 }}
+                onClick={() => setStep('image_processing')}
+                disabled={recording || loading}
+              >
+                ← {t.back}
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                style={{ flex: 2 }}
+                onClick={handleManualProceed}
+                disabled={loading || (!transcript && !additionalText)}
+              >
+                {t.proceedWithTypedDetails} →
+              </button>
+            </div>
           </div>
         )}
 
@@ -738,9 +1172,27 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            <button className="btn btn-primary btn-lg btn-full" onClick={handleGenerateDescription} disabled={loading}>
-              {t.continue} →
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-lg"
+                style={{ flex: 1 }}
+                onClick={() => setStep('voice_input')}
+                disabled={loading}
+              >
+                ← {t.back}
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                style={{ flex: 2 }}
+                onClick={handleGenerateDescription}
+                disabled={loading}
+              >
+                {t.continue} →
+              </button>
+            </div>
           </div>
         )}
 
@@ -813,9 +1265,27 @@ export default function NewProductPage() {
               <input type="number" className="form-input" value={moq} onChange={(e) => setMoq(Number(e.target.value) || 1)} />
             </div>
 
-            <button className="btn btn-primary btn-lg btn-full" onClick={handleCalculatePrice} disabled={loading}>
-              {t.calcSellingPriceBtn}
-            </button>
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-lg"
+                style={{ flex: 1 }}
+                onClick={() => setStep('extraction_review')}
+                disabled={loading}
+              >
+                ← {t.back}
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                style={{ flex: 2 }}
+                onClick={handleCalculatePrice}
+                disabled={loading}
+              >
+                {t.calcSellingPriceBtn} →
+              </button>
+            </div>
           </div>
         )}
 
@@ -916,22 +1386,79 @@ export default function NewProductPage() {
               </div>
             </div>
 
+            {/* Multilingual Product Title */}
             <div className="form-group">
-              <label className="form-label">{t.productTitleFieldLabel}</label>
-              <input className="form-input" value={generatedTitle} onChange={(e) => setGeneratedTitle(e.target.value)} />
+              <label className="form-label">🏷️ {t.productTitleFieldLabel}</label>
+              <input
+                className="form-input"
+                value={generatedTitle}
+                onChange={(e) => setGeneratedTitle(e.target.value)}
+              />
             </div>
 
+            {/* Multilingual Short Summary */}
+            <div className="form-group">
+              <label className="form-label">
+                🌐 Multilingual Summary (English, Hindi & Regional)
+              </label>
+              <textarea
+                className="form-input form-textarea"
+                style={{ minHeight: '75px', fontSize: 'var(--text-sm)' }}
+                value={shortDesc}
+                onChange={(e) => setShortDesc(e.target.value)}
+                placeholder="Multilingual summary (English, Hindi, Regional)"
+              />
+            </div>
+
+            {/* Multilingual Detailed Story & Description */}
+            <div className="form-group">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                <label className="form-label" style={{ margin: 0 }}>
+                  📜 Detailed Story (English + Hindi + Regional Language)
+                </label>
+                <span className="badge badge-primary" style={{ fontSize: 'var(--text-xs)' }}>
+                  Multilingual AI
+                </span>
+              </div>
+              <textarea
+                className="form-input form-textarea"
+                style={{ minHeight: '160px', fontFamily: 'inherit', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}
+                value={longDesc}
+                onChange={(e) => setLongDesc(e.target.value)}
+                placeholder="Detailed multilingual product description"
+              />
+            </div>
+
+            {/* Final Direct Selling Price */}
             <div className="form-group">
               <label className="form-label">{t.yourDirectSellingPriceLabel}</label>
-              <input type="number" className="form-input form-input-lg" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value === '' ? '' : Number(e.target.value))} />
+              <input
+                type="number"
+                className="form-input form-input-lg"
+                value={sellingPrice}
+                onChange={(e) => setSellingPrice(e.target.value === '' ? '' : Number(e.target.value))}
+              />
             </div>
 
-            <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
-              <button className="btn btn-secondary btn-lg" onClick={() => setStep('cost_pricing')}>
-                {t.editCostsBtn}
+            <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-lg"
+                style={{ flex: 1 }}
+                onClick={() => setStep('cost_pricing')}
+                disabled={loading}
+              >
+                ← {t.editCostsBtn}
               </button>
-              <button className="btn btn-success btn-lg" style={{ flex: 1 }} onClick={handlePublish} disabled={loading}>
-                {t.publishToMarketplaceBtn}
+
+              <button
+                type="button"
+                className="btn btn-success btn-lg"
+                style={{ flex: 2 }}
+                onClick={handlePublish}
+                disabled={loading}
+              >
+                {t.publishToMarketplaceBtn} 🎉
               </button>
             </div>
           </div>
