@@ -175,6 +175,9 @@ export async function POST(request: NextRequest) {
 
     // 13. Send notification to artisan (outside transaction — non-critical)
     try {
+      const buyerName = data.orderType === 'RETAIL' ? data.buyerDetails?.fullName : data.b2bDetails?.businessName;
+      const buyerPhone = data.orderType === 'RETAIL' ? data.buyerDetails?.phone : data.b2bDetails?.contactPhone;
+
       await notifyArtisanNewOrder({
         artisanUserId: result.artisanUserId,
         orderId: result.orderId,
@@ -182,6 +185,8 @@ export async function POST(request: NextRequest) {
         quantity: data.quantity,
         orderTotal: result.totalPaisa,
         orderType: data.orderType,
+        buyerName,
+        buyerPhone,
       });
     } catch (notifError) {
       console.error('[ORDER] Notification failed (order still created):', notifError);

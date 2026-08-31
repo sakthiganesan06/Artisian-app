@@ -39,7 +39,7 @@ export async function createNotification(
 }
 
 /**
- * Create order notification for artisan
+ * Create order notification for artisan with full order context and optional SMS
  */
 export async function notifyArtisanNewOrder(params: {
   artisanUserId: string;
@@ -48,9 +48,13 @@ export async function notifyArtisanNewOrder(params: {
   quantity: number;
   orderTotal: number;
   orderType: 'RETAIL' | 'B2B';
+  buyerPhone?: string;
+  buyerName?: string;
 }): Promise<void> {
-  const title = 'New Order Received';
-  const message = `${params.orderType === 'B2B' ? 'Bulk order' : 'Order'} for ${params.productName} (Qty: ${params.quantity}) — Order ID: ${params.orderId}`;
+  const isBulk = params.orderType === 'B2B';
+  const totalRupees = Math.round(params.orderTotal / 100);
+  const title = isBulk ? '🚨 New Bulk Order Received!' : '🛍️ New Order Received!';
+  const message = `${isBulk ? 'Bulk order' : 'Order'} #${params.orderId} for ${params.productName} (Qty: ${params.quantity}) totaling ₹${totalRupees.toLocaleString('en-IN')}`;
 
   await createNotification(
     params.artisanUserId,
@@ -62,8 +66,31 @@ export async function notifyArtisanNewOrder(params: {
       productName: params.productName,
       quantity: params.quantity,
       orderTotal: params.orderTotal,
+      orderType: params.orderType,
+      buyerName: params.buyerName,
+      buyerPhone: params.buyerPhone,
     }
   );
+
+  // Optional SMS alert via Twilio if configured
+  try {
+    const artisanUser = await prisma.user.findUnique({
+      where: { id: params.artisanUserId },
+      select: { phone: true },
+    });
+
+    if (artisanUser?.phone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
+      const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      await twilio.messages.create({
+        body: `[Artisan Marketplace] New ${isBulk ? 'Bulk ' : ''}Order #${params.orderId}! ${params.quantity}x ${params.productName} (₹${totalRupees}). Check your dashboard now.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: artisanUser.phone,
+      });
+      console.log(`[SMS] Notification sent to artisan at ${artisanUser.phone}`);
+    }
+  } catch (smsErr) {
+    console.warn('[SMS] Could not send SMS alert (non-critical):', smsErr);
+  }
 }
 
 /**

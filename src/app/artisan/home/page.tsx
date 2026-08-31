@@ -29,6 +29,9 @@ export default function ArtisanHomePage() {
   const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
 
+  // Real-time Notification Toast State
+  const [toastNotif, setToastNotif] = useState<{ title: string; message: string; orderId?: string } | null>(null);
+
   // Quick Stock Update State
   const [stockEditProduct, setStockEditProduct] = useState<Product | null>(null);
   const [newStockVal, setNewStockVal] = useState<number | ''>('');
@@ -36,6 +39,50 @@ export default function ArtisanHomePage() {
 
   useEffect(() => {
     loadDashboard();
+    
+    // Ask for browser notification permissions if supported
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // Real-time order notification polling every 6 seconds
+    const interval = setInterval(async () => {
+      try {
+        const notifsRes = await fetch('/api/notifications');
+        if (notifsRes.ok) {
+          const notifData = await notifsRes.json();
+          const newUnread = notifData.unreadCount || 0;
+
+          setUnreadNotifs((prevCount) => {
+            if (newUnread > prevCount && notifData.notifications?.[0]) {
+              const newest = notifData.notifications[0];
+              let meta: any = {};
+              try { meta = newest.data ? JSON.parse(newest.data) : {}; } catch {}
+
+              // Show Toast Banner
+              setToastNotif({
+                title: newest.title,
+                message: newest.message,
+                orderId: meta.orderId,
+              });
+
+              // Trigger System Browser Notification if allowed
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                new Notification(newest.title, {
+                  body: newest.message,
+                  icon: '/icon-192.png',
+                });
+              }
+            }
+            return newUnread;
+          });
+        }
+      } catch (err) {
+        console.error('Notification poll error:', err);
+      }
+    }, 6000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadDashboard = async () => {
@@ -113,7 +160,54 @@ export default function ArtisanHomePage() {
   const draftProducts = products.filter(p => p.status === 'DRAFT');
 
   return (
-    <div style={{ background: 'var(--color-bg)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--color-bg)', minHeight: '100vh', position: 'relative' }}>
+      {/* Toast Alert Popup for New Order */}
+      {toastNotif && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            background: 'linear-gradient(135deg, #10B981, #059669)',
+            color: 'white',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            maxWidth: '380px',
+            animation: 'slideIn 0.3s ease-out',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+          }}
+        >
+          <div className="flex-between">
+            <h4 style={{ color: 'white', margin: 0, fontSize: '1.05rem' }}>{toastNotif.title}</h4>
+            <button
+              onClick={() => setToastNotif(null)}
+              style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.2rem', cursor: 'pointer', opacity: 0.8 }}
+            >
+              ✕
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.95 }}>{toastNotif.message}</p>
+          <button
+            onClick={() => router.push('/artisan/orders')}
+            className="btn"
+            style={{
+              marginTop: '8px',
+              background: 'white',
+              color: '#059669',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              padding: '6px 12px',
+            }}
+          >
+            📦 View Order & Fulfill
+          </button>
+        </div>
+      )}
+
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-content">
