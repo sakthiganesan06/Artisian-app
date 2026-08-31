@@ -1,0 +1,141 @@
+// ============================================
+// Auth Provider Abstraction
+// Supports: "development" (dummy OTP) and "twilio" (real SMS)
+// ============================================
+
+export interface OTPResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface VerifyResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface AuthProvider {
+  sendOTP(phone: string): Promise<OTPResult>;
+  verifyOTP(phone: string, code: string): Promise<VerifyResult>;
+}
+
+// ============================================
+// Development Auth Provider (dummy OTP: 123456)
+// ============================================
+
+class DevelopmentAuthProvider implements AuthProvider {
+  private otpStore: Map<string, { code: string; expiresAt: number }> = new Map();
+
+  async sendOTP(phone: string): Promise<OTPResult> {
+    const code = '123456';
+    this.otpStore.set(phone, {
+      code,
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+    });
+    console.log(`[DEV AUTH] OTP for ${phone}: ${code}`);
+    return { success: true };
+  }
+
+  async verifyOTP(phone: string, code: string): Promise<VerifyResult> {
+    const stored = this.otpStore.get(phone);
+    if (!stored) {
+      return { success: false, error: 'No OTP sent for this number. Please request a new OTP.' };
+    }
+    if (Date.now() > stored.expiresAt) {
+      this.otpStore.delete(phone);
+      return { success: false, error: 'OTP expired. Please request a new OTP.' };
+    }
+    if (stored.code !== code) {
+      return { success: false, error: 'Invalid OTP. Please try again.' };
+    }
+    this.otpStore.delete(phone);
+    return { success: true };
+  }
+}
+
+// ============================================
+// Twilio Auth Provider (real SMS OTP)
+// ============================================
+
+class TwilioAuthProvider implements AuthProvider {
+  private accountSid: string;
+  private authToken: string;
+  private serviceSid: string;
+
+  constructor() {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+
+    if (!accountSid || !authToken || !serviceSid) {
+      throw new Error(
+        'Twilio configuration missing. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_VERIFY_SERVICE_SID environment variables.'
+      );
+    }
+
+    this.accountSid = accountSid;
+    this.authToken = authToken;
+    this.serviceSid = serviceSid;
+  }
+
+  async sendOTP(phone: string): Promise<OTPResult> {
+    try {
+      const twilio = (await import('twilio')).default;
+      const client = twilio(this.accountSid, this.authToken);
+      
+      await client.verify.v2
+        .services(this.serviceSid)
+        .verifications.create({ to: phone, channel: 'sms' });
+
+      return { success: true };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to send OTP';
+      console.error('[TWILIO] Send OTP error:', message);
+      return { success: false, error: message };
+    }
+  }
+
+  async verifyOTP(phone: string, code: string): Promise<VerifyResult> {
+    try {
+      const twilio = (await import('twilio')).default;
+      const client = twilio(this.accountSid, this.authToken);
+      
+      const verification = await client.verify.v2
+        .services(this.serviceSid)
+        .verificationChecks.create({ to: phone, code });
+
+      if (verification.status === 'approved') {
+        return { success: true };
+      }
+      return { success: false, error: 'Invalid OTP. Please try again.' };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to verify OTP';
+      console.error('[TWILIO] Verify OTP error:', message);
+      return { success: false, error: message };
+    }
+  }
+}
+
+// ============================================
+// Factory
+// ============================================
+
+let authProviderInstance: AuthProvider | null = null;
+
+export function getAuthProvider(): AuthProvider {
+  if (authProviderInstance) return authProviderInstance;
+
+  const provider = process.env.AUTH_PROVIDER || 'development';
+
+  switch (provider) {
+    case 'twilio':
+      authProviderInstance = new TwilioAuthProvider();
+      break;
+    case 'development':
+    default:
+      console.warn('[AUTH] Using development auth provider. OTP is always 123456.');
+      authProviderInstance = new DevelopmentAuthProvider();
+      break;
+  }
+
+  return authProviderInstance;
+}

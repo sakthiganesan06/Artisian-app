@@ -1,0 +1,411 @@
+// Artisan Marketplace - Database Schema (SQLite & PostgreSQL Compatible)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ============================================
+// AUTHENTICATION & USERS
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  role      String   @default("ARTISAN") // ARTISAN | CUSTOMER | ADMIN
+  name      String?
+  address   String?
+  city      String?
+  state     String?
+  pincode   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  artisanProfile ArtisanProfile?
+  sessions       Session[]
+  notifications  Notification[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ============================================
+// ARTISAN PROFILES
+// ============================================
+
+model ArtisanProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  artisanId       String   @unique // e.g., ART-TN-8F42K7
+  name            String
+  location        String?
+  district        String?
+  state           String?
+  stateCode       String?
+  craftType       String?
+  experience      String?
+  artisanStory    String?
+  language        String   @default("en")
+  profileImageUrl String?
+  isOnboarded     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@index([artisanId])
+  @@index([craftType])
+  @@map("artisan_profiles")
+}
+
+// ============================================
+// PRODUCTS
+// ============================================
+
+model Product {
+  id               String   @id @default(cuid())
+  artisanId        String
+  title            String
+  shortDescription String?
+  longDescription  String?
+  highlights       String   @default("[]") // JSON string of highlights
+  category         String?
+  material         String?
+  craftTechnique   String?
+  dimensions       String?
+  color            String?
+  weight           String?
+  productionTime   String? // e.g., "3 days"
+  status           String   @default("DRAFT") // DRAFT | PUBLISHED | OUT_OF_STOCK | UNPUBLISHED
+  sellingPrice     Int // Price in paisa
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  artisan            ArtisanProfile      @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+  images             ProductImage[]
+  cost               ProductCost?
+  pricingCalculation PricingCalculation?
+  inventory          Inventory?
+  orderItems         OrderItem[]
+  audioTranscripts   AudioTranscript[]
+  aiExtractions      AIExtraction[]
+
+  @@index([artisanId])
+  @@index([status])
+  @@index([category])
+  @@index([material])
+  @@map("products")
+}
+
+// ============================================
+// PRODUCT IMAGES
+// ============================================
+
+model ProductImage {
+  id               String   @id @default(cuid())
+  productId        String?
+  originalUrl      String
+  processedUrl     String?
+  thumbnailUrl     String?
+  processingStatus String   @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED
+  processingError  String?
+  width            Int?
+  height           Int?
+  sizeBytes        Int?
+  mimeType         String?
+  isPrimary        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+// ============================================
+// PRODUCT COSTS
+// ============================================
+
+model ProductCost {
+  id              String   @id @default(cuid())
+  productId       String   @unique
+  materialCost    Int // in paisa
+  labourCost      Int // in paisa
+  labourHours     Float?
+  labourRate      Int? // per hour in paisa
+  labourDays      Float?
+  dailyLabourRate Int? // per day in paisa
+  otherCost       Int      @default(0) // in paisa
+  totalCost       Int // calculated: material + labour + other, in paisa
+  costType        String   @default("PER_UNIT") // PER_UNIT | TOTAL_BATCH
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_costs")
+}
+
+// ============================================
+// MARKET COMPARABLES
+// ============================================
+
+model MarketComparable {
+  id          String   @id @default(cuid())
+  category    String
+  material    String?
+  craftType   String?
+  region      String?
+  minPrice    Int // in paisa
+  maxPrice    Int // in paisa
+  avgPrice    Int // in paisa
+  sampleSize  Int      @default(1)
+  source      String // e.g., "seed_data", "api:indiamart", "manual"
+  sourceUrl   String?
+  collectedAt DateTime @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category, material])
+  @@index([craftType])
+  @@map("market_comparables")
+}
+
+// ============================================
+// PRICING CALCULATIONS
+// ============================================
+
+model PricingCalculation {
+  id                  String   @id @default(cuid())
+  productId           String   @unique
+  productionCost      Int // in paisa
+  marketMinPrice      Int? // in paisa
+  marketMaxPrice      Int? // in paisa
+  marketAvgPrice      Int? // in paisa
+  marketDataAvailable Boolean  @default(false)
+  marketDataSource    String?
+  targetMinMargin     Float // e.g., 0.20 for 20%
+  targetMaxMargin     Float // e.g., 0.35 for 35%
+  recommendedMinPrice Int // in paisa
+  recommendedMaxPrice Int // in paisa
+  selectedPrice       Int // artisan's chosen price, in paisa
+  expectedMinProfit   Int // in paisa
+  expectedMaxProfit   Int // in paisa
+  calculatedAt        DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("pricing_calculations")
+}
+
+// ============================================
+// INVENTORY
+// ============================================
+
+model Inventory {
+  id            String   @id @default(cuid())
+  productId     String   @unique
+  currentStock  Int      @default(0)
+  reservedStock Int      @default(0)
+  moq           Int      @default(1) // Minimum Order Quantity
+  updatedAt     DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("inventory")
+}
+
+// ============================================
+// ORDERS
+// ============================================
+
+model Order {
+  id            String   @id @default(cuid())
+  orderId       String   @unique // e.g., ORD-20260831-A7K2M
+  orderType     String // RETAIL | B2B
+  status        String   @default("PENDING") // PENDING | CONFIRMED | PROCESSING | SHIPPED | DELIVERED | CANCELLED
+  totalAmount   Int // in paisa, calculated by backend
+  artisanUserId String // the artisan who receives this order
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items            OrderItem[]
+  buyerProfile     BuyerProfile?
+  b2bProfile       B2BProfile?
+  deliveryEstimate DeliveryEstimate?
+
+  @@index([artisanUserId])
+  @@index([orderId])
+  @@index([status])
+  @@map("orders")
+}
+
+// ============================================
+// ORDER ITEMS
+// ============================================
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Int // in paisa, from product at time of order
+  subtotal  Int // in paisa, quantity * unitPrice
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+// ============================================
+// BUYER PROFILES
+// ============================================
+
+model BuyerProfile {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  fullName  String
+  phone     String
+  address   String
+  city      String?
+  state     String?
+  pincode   String?
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("buyer_profiles")
+}
+
+// ============================================
+// B2B PROFILES
+// ============================================
+
+model B2BProfile {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  businessName String
+  gstNumber    String
+  address      String
+  city         String?
+  state        String?
+  pincode      String?
+  contactName  String?
+  contactPhone String
+  createdAt    DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("b2b_profiles")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String // NEW_ORDER | ORDER_STATUS_CHANGE | LOW_STOCK | PROFILE_UPDATE | SYSTEM
+  title     String
+  message   String
+  data      String? // JSON string
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ============================================
+// DELIVERY ESTIMATES
+// ============================================
+
+model DeliveryEstimate {
+  id             String   @id @default(cuid())
+  orderId        String   @unique
+  processingDays Int
+  shippingDays   Int
+  bulkBufferDays Int      @default(0)
+  totalDaysMin   Int
+  totalDaysMax   Int
+  estimatedStart DateTime
+  estimatedEnd   DateTime
+  calculatedAt   DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_estimates")
+}
+
+// ============================================
+// AUDIO TRANSCRIPTS
+// ============================================
+
+model AudioTranscript {
+  id         String   @id @default(cuid())
+  productId  String?
+  userId     String?
+  audioUrl   String?
+  transcript String
+  language   String?
+  confidence Float?
+  duration   Float? // in seconds
+  provider   String // e.g., "whisper", "google"
+  purpose    String // ARTISAN_ONBOARDING | PRODUCT_DESCRIPTION
+  createdAt  DateTime @default(now())
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+  @@map("audio_transcripts")
+}
+
+// ============================================
+// AI EXTRACTIONS
+// ============================================
+
+model AIExtraction {
+  id              String   @id @default(cuid())
+  productId       String?
+  userId          String?
+  inputTranscript String
+  extractedData   String // JSON string
+  model           String // e.g., "gemini-2.0-flash"
+  purpose         String // ARTISAN_PROFILE | PRODUCT_DETAILS | PRODUCT_DESCRIPTION
+  createdAt       DateTime @default(now())
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+  @@map("ai_extractions")
+}

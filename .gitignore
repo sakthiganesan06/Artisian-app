@@ -30,8 +30,17 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# environment variables (SECURITY: NEVER commit API keys or secret tokens)
+.env
+.env*.local
+
+# SQLite Database & Local Media Uploads
+*.db
+*.db-journal
+/prisma/*.db
+/prisma/*.db-journal
+/public/uploads/*
+!/public/uploads/.gitkeep
 
 # vercel
 .vercel
