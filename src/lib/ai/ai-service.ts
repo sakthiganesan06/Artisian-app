@@ -81,28 +81,58 @@ class GeminiAIService implements AIService {
   }
 
   private async callGemini(prompt: string, systemInstruction: string): Promise<string> {
-    const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const apiKey = this.apiKey.trim();
-    const genAI = new GoogleGenerativeAI(apiKey);
-
-    const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'];
+    const modelsToTry = [
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-flash-latest',
+      'gemini-3.7-flash',
+      'gemini-pro-latest'
+    ];
 
     for (const modelName of modelsToTry) {
       try {
-        const model = genAI.getGenerativeModel({
-          model: modelName,
-          systemInstruction,
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: systemInstruction }]
+            },
+            contents: [{
+              parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.1,
+            }
+          }),
         });
 
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        return response.text();
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = await res.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text && text.trim()) {
+            return text.trim();
+          }
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          console.warn(`[Gemini model ${modelName} returned ${res.status}]:`, errData);
+        }
       } catch (err) {
         console.warn(`[Gemini model ${modelName} failed, trying next candidate]:`, err instanceof Error ? err.message : err);
       }
     }
 
-    throw new Error('All Gemini model candidates failed. Please verify API key.');
+    throw new Error('All Gemini model candidates failed or timed out. Please verify API key.');
   }
 
   async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
