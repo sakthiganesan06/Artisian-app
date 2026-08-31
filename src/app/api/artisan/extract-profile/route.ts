@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const session = await requireAuth();
 
     const body = await request.json();
-    const { transcript } = body;
+    const { transcript, language } = body;
 
     if (!transcript || typeof transcript !== 'string' || transcript.trim().length === 0) {
       return NextResponse.json(
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     try {
       // Try AI Service (Google Gemini)
       const aiService = getAIService();
-      extracted = await aiService.extractArtisanProfile(transcript);
+      extracted = await aiService.extractArtisanProfile(transcript, language);
     } catch (aiError) {
       console.warn('[AI Extract Fallback] Gemini API error, using refined rule-based extraction:', aiError);
       extracted = ruleBasedExtractProfile(transcript);

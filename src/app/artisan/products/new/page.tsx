@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTranslation, getActiveLanguage, getSpeechRecognitionLang } from '@/lib/i18n/translations';
 
 type CreationStep =
   | 'photo_instructions'
@@ -47,7 +48,15 @@ interface PricingBreakdown {
 
 export default function NewProductPage() {
   const router = useRouter();
+  const [language, setLanguage] = useState('en');
   const [step, setStep] = useState<CreationStep>('photo_instructions');
+
+  useEffect(() => {
+    const active = getActiveLanguage();
+    setLanguage(active);
+  }, []);
+
+  const t = getTranslation(language);
   
   // Image state
   const [imageId, setImageId] = useState<string>('');
@@ -222,14 +231,14 @@ export default function NewProductPage() {
       setError('');
       liveTranscriptRef.current = '';
 
-      // Initialize browser native SpeechRecognition
+      // Initialize browser native SpeechRecognition with user's selected language
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-IN';
+        recognition.lang = getSpeechRecognitionLang(language);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
@@ -264,7 +273,7 @@ export default function NewProductPage() {
     } catch {
       setError('Microphone access denied or unavailable.');
     }
-  }, []);
+  }, [language]);
 
   const stopRecording = useCallback(() => {
     if (speechRecognitionRef.current) {
@@ -280,13 +289,14 @@ export default function NewProductPage() {
   // 4. Transcription & Product Info Extraction
   const handleAudioTranscription = async (blob: Blob) => {
     setLoading(true);
-    setLoadingMsg('Transcribing your product description...');
+    setLoadingMsg(t.extractingDetails);
 
     let finalTranscript = liveTranscriptRef.current;
 
     try {
       const formData = new FormData();
       formData.append('audio', blob, 'product.webm');
+      formData.append('language', language);
       formData.append('purpose', 'PRODUCT_DESCRIPTION');
 
       const sttRes = await fetch('/api/stt/transcribe', { method: 'POST', body: formData });
@@ -297,7 +307,7 @@ export default function NewProductPage() {
         }
       }
     } catch (err) {
-      console.warn('Server Whisper STT failed, using Web Speech API or manual input:', err);
+      console.warn('Server STT failed, using Web Speech API or manual input:', err);
     }
 
     // Combine with typed details if transcript is sparse
@@ -315,11 +325,11 @@ export default function NewProductPage() {
 
     try {
       // Trigger AI / Rule-based structured extraction
-      setLoadingMsg('Extracting product attributes...');
+      setLoadingMsg(t.extractingDetails);
       const extractRes = await fetch('/api/products/extract-details', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: finalTranscript, additionalText }),
+        body: JSON.stringify({ transcript: finalTranscript, additionalText, language }),
       });
 
       if (!extractRes.ok) throw new Error('Extraction failed');
@@ -495,7 +505,7 @@ export default function NewProductPage() {
         
         {/* Step Header */}
         <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-          <h2 style={{ fontSize: 'var(--text-2xl)' }}>Create New Product</h2>
+          <h2 style={{ fontSize: 'var(--text-2xl)' }}>{t.productUploadTitle}</h2>
           <p style={{ fontSize: 'var(--text-sm)' }}>AI-assisted product creation wizard</p>
         </div>
 
@@ -514,10 +524,10 @@ export default function NewProductPage() {
               />
               <div style={{ display: 'flex', gap: 'var(--space-4)', marginTop: 'var(--space-4)', justifyContent: 'center' }}>
                 <button className="btn btn-success btn-lg" onClick={captureCameraSnapshot}>
-                  📸 Snap Photo
+                  {t.captureSnapshot}
                 </button>
                 <button className="btn btn-danger btn-lg" onClick={stopCameraStream}>
-                  ✖ Close Camera
+                  ✖ {t.closeCamera}
                 </button>
               </div>
             </div>
@@ -527,14 +537,9 @@ export default function NewProductPage() {
         {/* STEP 1: Photo Instructions */}
         {step === 'photo_instructions' && (
           <div className="card card-body">
-            <h3 style={{ marginBottom: 'var(--space-4)' }}>📸 Product Photo Instructions</h3>
+            <h3 style={{ marginBottom: 'var(--space-4)' }}>{t.photoStepTitle}</h3>
             <div style={{ background: 'var(--color-bg-secondary)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', marginBottom: 'var(--space-6)' }}>
-              <ul style={{ paddingLeft: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                <li>Center the product in your camera frame</li>
-                <li>Ensure good lighting without harsh shadows</li>
-                <li>Keep background clean and uncluttered</li>
-                <li>Make sure the entire product is clearly visible</li>
-              </ul>
+              <p style={{ margin: '0 0 var(--space-2) 0', color: 'var(--color-text-secondary)' }}>{t.photoStepSubtitle}</p>
             </div>
             
             {/* File Input for Gallery Upload */}
@@ -567,7 +572,7 @@ export default function NewProductPage() {
                 onClick={startCameraStream}
                 disabled={loading}
               >
-                📷 Open Live Camera Viewfinder
+                {t.takePhotoCamera}
               </button>
 
               <button
@@ -576,7 +581,7 @@ export default function NewProductPage() {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
               >
-                📁 Choose File / Upload Image
+                {t.uploadFromGallery}
               </button>
             </div>
           </div>
@@ -585,7 +590,7 @@ export default function NewProductPage() {
         {/* STEP 2: Image Processing */}
         {step === 'image_processing' && (
           <div className="card card-body">
-            <h3>✨ AI Image Enhancement</h3>
+            <h3>✨ {t.enhancingPhoto}</h3>
             <p style={{ marginBottom: 'var(--space-4)' }}>Comparing original photo with AI enhanced version</p>
             
             <div className="image-compare" style={{ marginBottom: 'var(--space-6)' }}>
@@ -610,7 +615,7 @@ export default function NewProductPage() {
               onClick={() => setStep('voice_input')}
               disabled={imageProcessing}
             >
-              Continue to Product Details →
+              {t.continue} →
             </button>
           </div>
         )}
@@ -619,10 +624,22 @@ export default function NewProductPage() {
         {step === 'voice_input' && (
           <div className="card card-body" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '3rem', marginBottom: 'var(--space-2)' }}>🎤</div>
-            <h3>Describe Your Product</h3>
-            <p style={{ marginBottom: 'var(--space-6)' }}>
-              Speak naturally. Tell us the material, craft technique, production time, and quantity available.
+            <h3>{t.voiceStepTitle}</h3>
+            <p style={{ marginBottom: 'var(--space-4)' }}>
+              {t.voiceStepSubtitle}
             </p>
+
+            <div style={{
+              background: 'var(--color-bg-secondary)',
+              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--space-4)',
+              marginBottom: 'var(--space-6)',
+              textAlign: 'left',
+            }}>
+              <p style={{ fontSize: 'var(--text-xs)', fontStyle: 'italic', color: 'var(--color-text-secondary)', margin: 0 }}>
+                💡 {t.voicePromptExample}
+              </p>
+            </div>
 
             <button
               className={`mic-button mic-button-lg ${recording ? 'recording' : ''}`}
@@ -631,15 +648,15 @@ export default function NewProductPage() {
             >
               {recording ? '⏹' : '🎤'}
             </button>
-            <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-6)' }}>
-              {recording ? 'Recording... Tap to stop' : 'Tap to start speaking'}
+            <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-6)', fontWeight: 600 }}>
+              {recording ? t.tapToStop : t.tapToRecord}
             </p>
 
             <div className="form-group" style={{ textAlign: 'left' }}>
               <label className="form-label">Optional Typed Details</label>
               <textarea
                 className="form-input form-textarea"
-                placeholder="Add any extra details manually here (e.g. Pure silk saree, 3 days to make, 5 pieces in stock)..."
+                placeholder="Add any extra details manually here..."
                 value={additionalText}
                 onChange={(e) => setAdditionalText(e.target.value)}
               />
@@ -665,20 +682,20 @@ export default function NewProductPage() {
         {/* STEP 4: Extraction Review */}
         {step === 'extraction_review' && (
           <div className="card card-body">
-            <h3>Review Extracted Attributes</h3>
+            <h3>{t.productReviewTitle}</h3>
             <p style={{ marginBottom: 'var(--space-4)' }}>Extracted product details. Edit if needed.</p>
 
             <div className="grid grid-2">
               <div className="form-group">
-                <label className="form-label">Product Name</label>
+                <label className="form-label">{t.productTitleLabel}</label>
                 <input className="form-input" value={details.productName || ''} onChange={(e) => setDetails({ ...details, productName: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Category</label>
+                <label className="form-label">{t.categoryLabel}</label>
                 <input className="form-input" value={details.category || ''} onChange={(e) => setDetails({ ...details, category: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Material</label>
+                <label className="form-label">{t.materialLabel}</label>
                 <input className="form-input" value={details.material || ''} onChange={(e) => setDetails({ ...details, material: e.target.value })} />
               </div>
               <div className="form-group">
@@ -686,17 +703,17 @@ export default function NewProductPage() {
                 <input className="form-input" value={details.craftTechnique || ''} onChange={(e) => setDetails({ ...details, craftTechnique: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Production Time</label>
+                <label className="form-label">{t.productionTimeLabel}</label>
                 <input className="form-input" value={details.productionTime || ''} onChange={(e) => setDetails({ ...details, productionTime: e.target.value })} />
               </div>
               <div className="form-group">
-                <label className="form-label">Available Stock Quantity</label>
+                <label className="form-label">{t.quantityLabel}</label>
                 <input type="number" className="form-input" value={details.quantity || 1} onChange={(e) => setDetails({ ...details, quantity: Number(e.target.value) })} />
               </div>
             </div>
 
             <button className="btn btn-primary btn-lg btn-full" onClick={handleGenerateDescription} disabled={loading}>
-              Generate Description & Title →
+              {t.continue} →
             </button>
           </div>
         )}

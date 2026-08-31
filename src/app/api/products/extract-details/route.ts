@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     await requireAuth();
 
     const body = await request.json();
-    const { transcript, additionalText } = body;
+    const { transcript, additionalText, language } = body;
 
     if (!transcript || typeof transcript !== 'string' || transcript.trim().length === 0) {
       return NextResponse.json({ error: 'Transcript is required' }, { status: 400 });
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     let extracted;
     try {
       const aiService = getAIService();
-      extracted = await aiService.extractProductDetails(transcript, additionalText);
+      extracted = await aiService.extractProductDetails(transcript, additionalText, language);
     } catch (aiErr) {
       console.warn('[AI Product Extract Fallback] Using refined rule-based extraction:', aiErr);
       extracted = ruleBasedProductExtract(transcript);

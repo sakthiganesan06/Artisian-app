@@ -50,8 +50,8 @@ export type ProductDescription = z.infer<typeof productDescriptionSchema>;
 // ============================================
 
 export interface AIService {
-  extractArtisanProfile(transcript: string): Promise<ArtisanProfileExtraction>;
-  extractProductDetails(transcript: string, additionalText?: string): Promise<ProductExtraction>;
+  extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction>;
+  extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction>;
   generateProductDescription(params: {
     artisanName: string;
     artisanCraft?: string;
@@ -59,6 +59,7 @@ export interface AIService {
     productData: ProductExtraction;
     transcript: string;
     additionalText?: string;
+    language?: string;
   }): Promise<ProductDescription>;
 }
 
@@ -104,16 +105,16 @@ class GeminiAIService implements AIService {
     throw new Error('All Gemini model candidates failed. Please verify API key.');
   }
 
-  async extractArtisanProfile(transcript: string): Promise<ArtisanProfileExtraction> {
-    const systemInstruction = `You are an information extraction assistant. 
-Your job is to extract structured artisan profile information from a speech transcript.
+  async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
+    const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts and artisan profiling.
+Your job is to extract structured artisan profile information from a speech transcript in any Indian language (such as Tamil, Hindi, Telugu, Kannada, Malayalam, Bengali, etc.).
 
 CRITICAL RULES:
 1. ONLY extract information that is EXPLICITLY present in the transcript.
 2. DO NOT invent, assume, or hallucinate any information.
 3. If a field is not mentioned in the transcript, set it to null.
-4. Return ONLY valid JSON with no additional text or markdown.
-5. The transcript may be in any Indian language — extract the information regardless.
+4. Understand regional terms (e.g., in Tamil: "என் பெயர்", "நெசவு", "பட்டுப் புடவை"; in Hindi: "मेरा नाम", "मिट्टी के बर्तन", "हथकरघा").
+5. Return ONLY valid JSON with no additional text or markdown.
 
 Expected JSON format:
 {
@@ -126,7 +127,7 @@ Expected JSON format:
   "artisanStory": string or null
 }`;
 
-    const prompt = `Extract artisan profile information from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
+    const prompt = `Language context: ${language || 'Indian regional'}\nExtract artisan profile information from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
 
     const response = await this.callGemini(prompt, systemInstruction);
     const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
@@ -134,15 +135,15 @@ Expected JSON format:
     return artisanProfileExtractionSchema.parse(parsed);
   }
 
-  async extractProductDetails(transcript: string, additionalText?: string): Promise<ProductExtraction> {
-    const systemInstruction = `You are a product information extraction assistant.
-Your job is to extract structured product details from an artisan's speech transcript.
+  async extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction> {
+    const systemInstruction = `You are an expert multilingual product information extraction assistant for handcrafted products.
+Your job is to extract structured product details from an artisan's speech transcript in any Indian language.
 
 CRITICAL RULES:
 1. ONLY extract information that is EXPLICITLY present in the transcript.
 2. DO NOT invent product names, colors, dimensions, or any attribute not mentioned.
 3. If a field is not mentioned, set it to null.
-4. For quantity, extract the number if mentioned (e.g., "I have five pieces" → 5).
+4. For quantity, extract the number if mentioned (e.g., in Tamil "பத்து துண்டுகள்" -> 10, in Hindi "पाँच पीस" -> 5).
 5. Return ONLY valid JSON with no additional text or markdown.
 
 Expected JSON format:
@@ -159,7 +160,7 @@ Expected JSON format:
   "otherAttributes": object or null
 }`;
 
-    let prompt = `Extract product details from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
+    let prompt = `Language context: ${language || 'Indian regional'}\nExtract product details from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
     if (additionalText) {
       prompt += `\n\nAdditional information provided by the artisan:\n"${additionalText}"`;
     }
@@ -177,15 +178,16 @@ Expected JSON format:
     productData: ProductExtraction;
     transcript: string;
     additionalText?: string;
+    language?: string;
   }): Promise<ProductDescription> {
-    const systemInstruction = `You are a product description writer for an artisan marketplace.
-Write compelling, authentic product descriptions that help sell handcrafted products.
+    const systemInstruction = `You are a professional product description writer for an authentic Indian artisan marketplace.
+Write compelling, authentic product descriptions that celebrate genuine handmade craftsmanship.
 
 CRITICAL RULES:
 1. Base descriptions ONLY on the provided product data and transcript.
-2. DO NOT invent certifications, awards, quality claims, sustainability claims, or origin claims unless explicitly provided.
-3. DO NOT fabricate dimensions, materials, colors, or any attributes not in the data.
-4. Highlight the craftsmanship and artisan's skill authentically.
+2. DO NOT invent certifications, awards, or false attributes not in the data.
+3. Highlight the craftsmanship and artisan's skill authentically.
+4. If language is specified, craft the title, summary, and highlights appropriately.
 5. Return ONLY valid JSON with no additional text or markdown.
 
 Expected JSON format:
@@ -197,7 +199,8 @@ Expected JSON format:
 }`;
 
     const productInfo = JSON.stringify(params.productData, null, 2);
-    const prompt = `Generate a product description based on this information:
+    const prompt = `Language preference: ${params.language || 'en'}
+Generate a product description based on this information:
 
 Artisan: ${params.artisanName}${params.artisanCraft ? `, specializing in ${params.artisanCraft}` : ''}${params.artisanLocation ? ` from ${params.artisanLocation}` : ''}
 

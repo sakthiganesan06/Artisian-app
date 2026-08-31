@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTranslation, getActiveLanguage, setActiveLanguage } from '@/lib/i18n/translations';
+import { SUPPORTED_LANGUAGES } from '@/lib/validations';
 
 interface Profile {
   artisanId: string;
@@ -22,12 +24,25 @@ interface Product {
 
 export default function ArtisanHomePage() {
   const router = useRouter();
+  const [language, setLanguage] = useState('en');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [qrCode, setQrCode] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
+
+  useEffect(() => {
+    const active = getActiveLanguage();
+    setLanguage(active);
+  }, []);
+
+  const t = getTranslation(language);
+
+  const handleLanguageChange = (newLang: string) => {
+    setActiveLanguage(newLang);
+    setLanguage(newLang);
+  };
 
   // Real-time Notification Toast State
   const [toastNotif, setToastNotif] = useState<{ title: string; message: string; orderId?: string } | null>(null);
@@ -212,8 +227,30 @@ export default function ArtisanHomePage() {
       <nav className="navbar">
         <div className="navbar-content">
           <a className="navbar-brand" href="/artisan/home">🎨 Artisan</a>
-          <div className="navbar-links">
-            <a className="navbar-link" href="/marketplace">🛍️ Marketplace</a>
+          <div className="navbar-links" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            {/* Quick Language Selector */}
+            <select
+              className="form-input"
+              value={language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              style={{
+                padding: '4px 8px',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 600,
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--color-bg-secondary)',
+                border: '1px solid var(--color-border)',
+                cursor: 'pointer',
+              }}
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.nativeName} ({lang.name})
+                </option>
+              ))}
+            </select>
+
+            <a className="navbar-link" href="/marketplace">🛍️ {t.marketplace}</a>
             <a className="navbar-link" href="/artisan/notifications" style={{ position: 'relative' }}>
               🔔
               {unreadNotifs > 0 && (
@@ -221,7 +258,7 @@ export default function ArtisanHomePage() {
               )}
             </a>
             <button className="btn btn-ghost" onClick={handleLogout} style={{ fontSize: 'var(--text-sm)' }}>
-              Logout
+              {t.logout}
             </button>
           </div>
         </div>
@@ -238,7 +275,7 @@ export default function ArtisanHomePage() {
         }}>
           <div className="flex-between flex-wrap gap-4">
             <div>
-              <p style={{ opacity: 0.8, marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)' }}>Welcome back,</p>
+              <p style={{ opacity: 0.8, marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)' }}>{t.welcomeBack}</p>
               <h1 style={{ color: 'white', fontSize: 'var(--text-3xl)', marginBottom: 'var(--space-2)' }}>
                 {profile.name}
               </h1>
@@ -250,7 +287,7 @@ export default function ArtisanHomePage() {
                 borderRadius: 'var(--radius-full)',
                 display: 'inline-block',
               }}>
-                {profile.artisanId}
+                {t.artisanIdBadge}: {profile.artisanId}
               </div>
               {profile.craftType && (
                 <p style={{ marginTop: 'var(--space-2)', opacity: 0.85 }}>
@@ -267,7 +304,7 @@ export default function ArtisanHomePage() {
               }}
               onClick={() => setShowQR(!showQR)}
             >
-              📱 {showQR ? 'Hide' : 'Show'} QR Code
+              {showQR ? t.hideQRBtn : t.showQRBtn}
             </button>
           </div>
 
@@ -293,7 +330,7 @@ export default function ArtisanHomePage() {
                   {profile.artisanId}
                 </div>
                 <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>
-                  Scan with any phone camera to view profile & products
+                  {t.qrScanInstruction}
                 </p>
               </div>
 
@@ -309,7 +346,7 @@ export default function ArtisanHomePage() {
                     fontSize: 'var(--text-sm)',
                   }}
                 >
-                  📥 Download QR Image
+                  {t.downloadQRBtn}
                 </a>
                 <a
                   href={`/artisan/${profile.artisanId}`}
@@ -323,7 +360,7 @@ export default function ArtisanHomePage() {
                     fontSize: 'var(--text-sm)',
                   }}
                 >
-                  🔗 Preview Public Profile
+                  {t.previewProfileBtn}
                 </a>
               </div>
             </div>
@@ -334,21 +371,21 @@ export default function ArtisanHomePage() {
         <div className="grid grid-4" style={{ marginBottom: 'var(--space-8)' }}>
           <div className="stat-card">
             <div className="stat-value">{products.length}</div>
-            <div className="stat-label">Total Products</div>
+            <div className="stat-label">{t.totalProducts}</div>
           </div>
           <div className="stat-card">
             <div className="stat-value">{publishedProducts.length}</div>
-            <div className="stat-label">Published</div>
+            <div className="stat-label">{t.published}</div>
           </div>
           <div className="stat-card">
             <div className="stat-value">{draftProducts.length}</div>
-            <div className="stat-label">Drafts</div>
+            <div className="stat-label">{t.drafts}</div>
           </div>
           <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => router.push('/artisan/notifications')}>
             <div className="stat-value" style={{ color: unreadNotifs > 0 ? 'var(--color-danger)' : undefined }}>
               {unreadNotifs}
             </div>
-            <div className="stat-label">Notifications</div>
+            <div className="stat-label">{t.notifications}</div>
           </div>
         </div>
 
@@ -359,21 +396,21 @@ export default function ArtisanHomePage() {
             onClick={() => router.push('/artisan/products/new')}
             style={{ flex: '1 1 200px' }}
           >
-            ➕ Add Product
+            {t.addProductBtn}
           </button>
           <button
             className="btn btn-secondary btn-lg"
             onClick={() => router.push('/artisan/orders')}
             style={{ flex: '1 1 200px' }}
           >
-            📦 View Orders
+            {t.viewOrdersBtn}
           </button>
           <button
             className="btn btn-secondary btn-lg"
             onClick={() => router.push('/marketplace')}
             style={{ flex: '1 1 200px' }}
           >
-            🛍️ Marketplace
+            🛍️ {t.marketplace}
           </button>
         </div>
 

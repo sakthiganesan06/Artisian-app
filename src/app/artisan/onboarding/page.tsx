@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { getTranslation, getActiveLanguage, getSpeechRecognitionLang } from '@/lib/i18n/translations';
 
 type OnboardingStep = 'record' | 'processing' | 'review';
 
@@ -17,6 +18,7 @@ interface ExtractedProfile {
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const [language, setLanguage] = useState('en');
   const [step, setStep] = useState<OnboardingStep>('record');
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -29,12 +31,18 @@ export default function OnboardingPage() {
   const [error, setError] = useState('');
   const [qrCode, setQrCode] = useState('');
   const [artisanId, setArtisanId] = useState('');
-  const [language] = useState('en');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const speechRecognitionRef = useRef<unknown>(null);
   const liveTranscriptRef = useRef<string>('');
+
+  useEffect(() => {
+    const activeLang = getActiveLanguage();
+    setLanguage(activeLang);
+  }, []);
+
+  const t = getTranslation(language);
 
   // === Voice Recording ===
   const startRecording = useCallback(async () => {
@@ -42,14 +50,14 @@ export default function OnboardingPage() {
       setError('');
       liveTranscriptRef.current = '';
 
-      // Initialize Web Speech API for real-time live browser transcription
+      // Initialize Web Speech API with the user's selected language
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-IN';
+        recognition.lang = getSpeechRecognitionLang(language);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
@@ -96,7 +104,7 @@ export default function OnboardingPage() {
         setError('Failed to start recording. Please check your microphone.');
       }
     }
-  }, []);
+  }, [language]);
 
   const stopRecording = useCallback(() => {
     if (speechRecognitionRef.current) {
@@ -112,12 +120,12 @@ export default function OnboardingPage() {
   // === Process Audio (STT + AI Extraction) ===
   const processAudio = async (audioBlob: Blob) => {
     setStep('processing');
-    setLoadingMessage('Transcribing your voice...');
+    setLoadingMessage(t.processingAudio);
 
     let finalTranscript = liveTranscriptRef.current;
 
     try {
-      // Step 1: Try STT Server (Whisper API)
+      // Step 1: STT Transcription (Sarvam AI / Whisper with user's selected language)
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
       formData.append('language', language);
@@ -135,7 +143,7 @@ export default function OnboardingPage() {
         }
       }
     } catch (sttErr) {
-      console.warn('Server Whisper STT failed, using Web Speech API transcript:', sttErr);
+      console.warn('Server STT failed, using Web Speech API transcript:', sttErr);
     }
 
     if (!finalTranscript || finalTranscript.trim().length === 0) {
@@ -147,32 +155,50 @@ export default function OnboardingPage() {
     setTranscript(finalTranscript);
 
     try {
-      // Step 2: AI Extraction
-      setLoadingMessage('Understanding your information...');
+      // Step 2: AI Extraction with Language Context
+      setLoadingMessage(t.extractingDetails);
 
       const extractRes = await fetch('/api/artisan/extract-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: finalTranscript }),
+        body: JSON.stringify({ transcript: finalTranscript, language }),
       });
 
       if (!extractRes.ok) {
         const extractError = await extractRes.json();
-        throw new Error(extractError.error || 'Profile extraction failed');
+        throw new Error(extractError.error || 'Extraction failed');
       }
 
       const extractData = await extractRes.json();
-      setProfile(extractData.extracted);
+      setProfile({
+        name: extractData.extracted.name || null,
+        location: extractData.extracted.location || null,
+        district: extractData.extracted.district || null,
+        state: extractData.extracted.state || null,
+        craftType: extractData.extracted.craftType || null,
+        experience: extractData.extracted.experience || null,
+        artisanStory: extractData.extracted.artisanStory || finalTranscript,
+      });
+
       setStep('review');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Processing failed');
-      setStep('record');
+    } catch (extractErr) {
+      console.error('AI Extraction error:', extractErr);
+      setProfile({
+        name: null,
+        location: null,
+        district: null,
+        state: null,
+        craftType: null,
+        experience: null,
+        artisanStory: finalTranscript,
+      });
+      setStep('review');
     }
   };
 
-  // === Confirm Profile ===
+  // === Save Profile & Generate ID ===
   const handleConfirm = async () => {
-    if (!profile.name || profile.name.trim() === '') {
+    if (!profile.name || profile.name.trim().length === 0) {
       setError('Name is required');
       return;
     }
@@ -208,7 +234,7 @@ export default function OnboardingPage() {
       setStep('review');
 
       // Brief delay then redirect to home
-      setTimeout(() => router.push('/artisan/home'), 3000);
+      setTimeout(() => router.push('/artisan/home'), 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create profile');
     } finally {
@@ -268,36 +294,38 @@ export default function OnboardingPage() {
       <div className="page" style={{ background: 'var(--color-bg)' }}>
         <div className="container container-sm" style={{ paddingTop: 'var(--space-8)' }}>
           <div style={{ textAlign: 'center', marginBottom: 'var(--space-8)' }}>
-            <h2>Review Your Information</h2>
-            <p>Please verify the information extracted from your voice. Edit anything that needs correction.</p>
+            <h2>{t.reviewProfileTitle}</h2>
+            <p>{t.reviewProfileSubtitle}</p>
           </div>
 
           {/* Transcript */}
-          <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
-            <div className="card-body">
-              <h4 style={{ marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
-                📝 Your Transcript
-              </h4>
-              <p style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>
-                &ldquo;{transcript}&rdquo;
-              </p>
+          {transcript && (
+            <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
+              <div className="card-body">
+                <h4 style={{ marginBottom: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+                  📝 Your Transcript
+                </h4>
+                <p style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>
+                  &ldquo;{transcript}&rdquo;
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Editable Fields */}
           <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
             <div className="card-body">
-              <h4 style={{ marginBottom: 'var(--space-4)' }}>Extracted Information</h4>
+              <h4 style={{ marginBottom: 'var(--space-4)' }}>{t.reviewProfileTitle}</h4>
 
               {[
-                { key: 'name' as const, label: 'Name', required: true, textarea: false },
-                { key: 'location' as const, label: 'Location', required: false, textarea: false },
-                { key: 'district' as const, label: 'District', required: false, textarea: false },
-                { key: 'state' as const, label: 'State', required: false, textarea: false },
-                { key: 'craftType' as const, label: 'Craft Type', required: false, textarea: false },
-                { key: 'experience' as const, label: 'Experience', required: false, textarea: false },
-                { key: 'artisanStory' as const, label: 'Your Story', required: false, textarea: true },
-              ].map(({ key, label, required, textarea }) => (
+                { key: 'name' as const, label: t.nameLabel, placeholder: t.namePlaceholder, required: true, textarea: false },
+                { key: 'location' as const, label: t.locationLabel, placeholder: t.locationPlaceholder, required: false, textarea: false },
+                { key: 'district' as const, label: 'District', placeholder: 'District', required: false, textarea: false },
+                { key: 'state' as const, label: 'State', placeholder: 'State', required: false, textarea: false },
+                { key: 'craftType' as const, label: t.craftTypeLabel, placeholder: t.craftPlaceholder, required: false, textarea: false },
+                { key: 'experience' as const, label: t.experienceLabel, placeholder: t.experiencePlaceholder, required: false, textarea: false },
+                { key: 'artisanStory' as const, label: t.storyLabel, placeholder: t.storyPlaceholder, required: false, textarea: true },
+              ].map(({ key, label, placeholder, required, textarea }) => (
                 <div className="form-group" key={key}>
                   <label className="form-label">
                     {label} {required && <span style={{ color: 'var(--color-danger)' }}>*</span>}
@@ -307,7 +335,7 @@ export default function OnboardingPage() {
                       className="form-input form-textarea"
                       value={profile[key] || ''}
                       onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={`Enter ${label.toLowerCase()}`}
+                      placeholder={placeholder}
                       rows={3}
                     />
                   ) : (
@@ -315,7 +343,7 @@ export default function OnboardingPage() {
                       className="form-input"
                       value={profile[key] || ''}
                       onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={`Enter ${label.toLowerCase()}`}
+                      placeholder={placeholder}
                     />
                   )}
                 </div>
@@ -352,7 +380,7 @@ export default function OnboardingPage() {
                   {loadingMessage}
                 </>
               ) : (
-                '✓ Confirm & Create Profile'
+                `✓ ${t.confirmSaveProfile}`
               )}
             </button>
           </div>
@@ -364,12 +392,11 @@ export default function OnboardingPage() {
   // Record step (default)
   return (
     <div className="page-center" style={{ background: 'var(--color-bg)' }}>
-      <div style={{ textAlign: 'center', maxWidth: '500px' }}>
+      <div style={{ textAlign: 'center', maxWidth: '540px' }}>
         <div style={{ fontSize: '3rem', marginBottom: 'var(--space-4)' }}>🎤</div>
-        <h1 style={{ marginBottom: 'var(--space-3)' }}>Tell Us About Yourself</h1>
+        <h1 style={{ marginBottom: 'var(--space-3)' }}>{t.onboardingTitle}</h1>
         <p style={{ marginBottom: 'var(--space-8)', fontSize: 'var(--text-lg)' }}>
-          Press the microphone and speak naturally.
-          Tell us your name, location, what you make, and your experience.
+          {t.onboardingSubtitle}
         </p>
 
         <div style={{
@@ -378,11 +405,10 @@ export default function OnboardingPage() {
           padding: 'var(--space-5)',
           marginBottom: 'var(--space-8)',
           textAlign: 'left',
+          lineHeight: 1.6,
         }}>
-          <p style={{ fontSize: 'var(--text-sm)', fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>
-            💡 Example: &ldquo;My name is Lakshmi. I am from Tirunelveli, Tamil Nadu.
-            I make handloom sarees and I have 15 years of experience.
-            I learned this craft from my mother.&rdquo;
+          <p style={{ fontSize: 'var(--text-sm)', fontStyle: 'italic', color: 'var(--color-text-secondary)', margin: 0 }}>
+            💡 {t.onboardingExample}
           </p>
         </div>
 
@@ -394,8 +420,8 @@ export default function OnboardingPage() {
           {recording ? '⏹' : '🎤'}
         </button>
 
-        <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-          {recording ? 'Recording... Tap to stop' : 'Tap to start recording'}
+        <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+          {recording ? t.tapToStop : t.tapToRecord}
         </p>
 
         {error && (
@@ -412,7 +438,7 @@ export default function OnboardingPage() {
               setStep('review');
             }}
           >
-            ⌨️ Prefer to type? Enter manually
+            ⌨️ {t.preferToType}
           </button>
         </div>
       </div>

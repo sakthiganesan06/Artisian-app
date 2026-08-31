@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SUPPORTED_LANGUAGES } from '@/lib/validations';
 
+import { setActiveLanguage } from '@/lib/i18n/translations';
+
 export default function LanguageSelectionPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
@@ -14,9 +16,7 @@ export default function LanguageSelectionPage() {
     setLoading(true);
 
     try {
-      // Save language preference to profile
-      // If profile doesn't exist yet, we'll save it during onboarding
-      document.cookie = `locale=${code};path=/;max-age=${365 * 24 * 60 * 60}`;
+      setActiveLanguage(code);
 
       // Brief delay for visual feedback
       await new Promise(r => setTimeout(r, 300));
