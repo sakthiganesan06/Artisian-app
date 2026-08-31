@@ -51,15 +51,13 @@ export default function OnboardingPage() {
       liveTranscriptRef.current = '';
 
       // Initialize Web Speech API with the user's selected language
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
+      const SpeechRecognition = (window as unknown as Record<string, unknown>).SpeechRecognition || (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+      if (SpeechRecognition && typeof SpeechRecognition === 'function') {
+        const recognition = new (SpeechRecognition as any)();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = getSpeechRecognitionLang(language);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
           let currentText = '';
           for (let i = 0; i < event.results.length; i++) {
@@ -104,11 +102,11 @@ export default function OnboardingPage() {
         setError('Failed to start recording. Please check your microphone.');
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const stopRecording = useCallback(() => {
     if (speechRecognitionRef.current) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (speechRecognitionRef.current as any).stop();
     }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {

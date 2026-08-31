@@ -12,7 +12,7 @@ export interface ImageProcessingResult {
 }
 
 export interface ImageProcessingProvider {
-  processImage(imageBuffer: Buffer, mimeType: string): Promise<ImageProcessingResult>;
+  processImage(imageBuffer: Buffer, mimeType?: string): Promise<ImageProcessingResult>;
 }
 
 // ============================================
@@ -30,7 +30,7 @@ class RemoveBgProvider implements ImageProcessingProvider {
     this.apiKey = apiKey;
   }
 
-  async processImage(imageBuffer: Buffer, mimeType: string): Promise<ImageProcessingResult> {
+  async processImage(imageBuffer: Buffer, mimeType?: string): Promise<ImageProcessingResult> {
     const sharp = (await import('sharp')).default;
     const targetSize = 1200;
 
@@ -100,7 +100,7 @@ class RemoveBgProvider implements ImageProcessingProvider {
     // Fallback: Local Sharp studio engine
     console.log('[IMAGE] Using Sharp local fallback engine');
     const sharpEngine = new SharpStudioEngine();
-    return sharpEngine.processImage(imageBuffer, mimeType);
+    return sharpEngine.processImage(imageBuffer);
   }
 }
 
@@ -109,7 +109,7 @@ class RemoveBgProvider implements ImageProcessingProvider {
 // ============================================
 
 class SharpStudioEngine implements ImageProcessingProvider {
-  async processImage(imageBuffer: Buffer, _mimeType: string): Promise<ImageProcessingResult> {
+  async processImage(imageBuffer: Buffer): Promise<ImageProcessingResult> {
     const sharp = (await import('sharp')).default;
     const targetSize = 1200;
 

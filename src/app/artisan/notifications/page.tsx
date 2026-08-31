@@ -23,6 +23,7 @@ export default function NotificationsPage() {
   useEffect(() => {
     setLanguage(getActiveLanguage());
     fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const t = getTranslation(language);

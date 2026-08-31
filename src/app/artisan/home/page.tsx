@@ -99,6 +99,7 @@ export default function ArtisanHomePage() {
     }, 6000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboard = async () => {

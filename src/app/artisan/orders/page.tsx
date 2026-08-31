@@ -51,6 +51,7 @@ export default function ArtisanOrdersPage() {
   useEffect(() => {
     setLanguage(getActiveLanguage());
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const t = getTranslation(language);

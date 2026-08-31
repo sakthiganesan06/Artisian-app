@@ -14,8 +14,8 @@ export interface StorageResult {
 }
 
 export interface StorageProvider {
-  upload(buffer: Buffer, filename: string, mimeType: string, folder?: string): Promise<StorageResult>;
-  delete(filePath: string): Promise<void>;
+  upload(buffer: Buffer, filename?: string, mimeType?: string, folder?: string): Promise<StorageResult>;
+  delete(filePath?: string): Promise<void>;
 }
 
 // ============================================
@@ -23,7 +23,7 @@ export interface StorageProvider {
 // ============================================
 
 class DataUriStorageProvider implements StorageProvider {
-  async upload(buffer: Buffer, filename: string, mimeType: string, folder: string = 'general'): Promise<StorageResult> {
+  async upload(buffer: Buffer, _filename?: string, mimeType: string = 'image/jpeg', _folder?: string): Promise<StorageResult> {
     const base64 = buffer.toString('base64');
     const dataUrl = `data:${mimeType};base64,${base64}`;
 
@@ -34,7 +34,7 @@ class DataUriStorageProvider implements StorageProvider {
     };
   }
 
-  async delete(_filePath: string): Promise<void> {}
+  async delete(): Promise<void> {}
 }
 
 // ============================================
@@ -128,7 +128,7 @@ class S3StorageProvider implements StorageProvider {
     };
   }
 
-  async delete(filePath: string): Promise<void> {}
+  async delete(): Promise<void> {}
 }
 
 // ============================================

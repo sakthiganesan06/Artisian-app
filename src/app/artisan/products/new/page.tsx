@@ -453,15 +453,13 @@ export default function NewProductPage() {
       liveTranscriptRef.current = '';
 
       // Initialize browser native SpeechRecognition with user's selected language
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
+      const SpeechRecognition = (window as unknown as Record<string, unknown>).SpeechRecognition || (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+      if (SpeechRecognition && typeof SpeechRecognition === 'function') {
+        const recognition = new (SpeechRecognition as any)();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = getSpeechRecognitionLang(language);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         recognition.onresult = (event: any) => {
           let currentText = '';
           for (let i = 0; i < event.results.length; i++) {
@@ -494,11 +492,11 @@ export default function NewProductPage() {
     } catch {
       setError('Microphone access denied or unavailable.');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const stopRecording = useCallback(() => {
     if (speechRecognitionRef.current) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (speechRecognitionRef.current as any).stop();
     }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
@@ -768,6 +766,16 @@ export default function NewProductPage() {
   // Render Steps
   return (
     <div className="page" style={{ background: 'var(--color-bg)' }}>
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="loading-overlay" style={{ background: 'rgba(0,0,0,0.7)', zIndex: 9999 }}>
+          <div className="spinner" />
+          <p className="loading-text" style={{ color: 'white', marginTop: 'var(--space-3)', fontWeight: 600 }}>
+            {loadingMsg || t.loading}
+          </p>
+        </div>
+      )}
+
       <div className="container container-md" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-10)' }}>
         
         {/* TOP WIZARD NAVIGATION BAR WITH BACK ARROW */}

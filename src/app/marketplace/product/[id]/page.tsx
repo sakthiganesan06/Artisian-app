@@ -58,9 +58,6 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [pincode, setPincode] = useState('');
 
   // B2B Form Inputs
   const [businessName, setBusinessName] = useState('');
@@ -191,18 +188,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           fullName,
           phone,
           address,
-          city: city || null,
-          state: state || null,
-          pincode: pincode || null,
+          city: null,
+          state: null,
+          pincode: null,
         } : undefined,
         b2bDetails: orderMode === 'B2B' ? {
           businessName,
           gstNumber,
           contactPhone: phone,
           address,
-          city: city || null,
-          state: state || null,
-          pincode: pincode || null,
+          city: null,
+          state: null,
+          pincode: null,
         } : undefined,
       };
 
