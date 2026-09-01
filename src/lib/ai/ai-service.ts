@@ -36,10 +36,13 @@ export const productExtractionSchema = z.object({
 export type ProductExtraction = z.infer<typeof productExtractionSchema>;
 
 // --- Generated Description Schema ---
+// Updated: separate fields for each language instead of mixing them
 export const productDescriptionSchema = z.object({
   title: z.string(),
   shortDescription: z.string(),
   longDescription: z.string(),
+  descriptionHindi: z.string().optional().default(''),
+  descriptionRegional: z.string().optional().default(''),
   highlights: z.array(z.string()),
 });
 
@@ -75,9 +78,80 @@ function getLanguageDisplayName(code?: string): string {
   }
 }
 
+function getLanguageScript(code?: string): string {
+  switch (code) {
+    case 'ta': return 'தமிழ்';
+    case 'hi': return 'हिंदी';
+    case 'te': return 'తెలుగు';
+    case 'kn': return 'ಕನ್ನಡ';
+    case 'ml': return 'മലയാളം';
+    default: return '';
+  }
+}
+
+// ============================================
+// Build the IMPROVED description generation prompt
+// Key fix: Each language in its OWN field, not mixed together
+// ============================================
+
+function buildDescriptionSystemPrompt(langCode: string, langName: string): string {
+  const isOtherRegional = langCode !== 'en' && langCode !== 'hi';
+  const langScript = getLanguageScript(langCode);
+
+  return `You are a professional product description writer for an authentic Indian artisan marketplace.
+
+CRITICAL RULES:
+1. Write each language in its OWN SEPARATE JSON field. NEVER mix languages within a single field.
+2. "longDescription" MUST be written ONLY in English — no Hindi or other language words.
+3. "descriptionHindi" MUST be written ONLY in Hindi (Devanagari script) — no English words.
+${isOtherRegional ? `4. "descriptionRegional" MUST be written ONLY in ${langName} (${langScript} script) — no English or Hindi words.` : '4. "descriptionRegional" should be an empty string "".'}
+5. "shortDescription" should be a brief English-only summary (1-2 sentences).
+6. "title" should be a compelling English-only product title.
+7. "highlights" should be 4-5 key selling points in English only.
+
+Return ONLY valid JSON matching this exact schema:
+{
+  "title": "English product title",
+  "shortDescription": "Brief English summary of the product",
+  "longDescription": "2-3 paragraphs in ENGLISH ONLY describing the craftsmanship, artisan heritage, materials, and beauty of the product",
+  "descriptionHindi": "2-3 paragraphs in HINDI ONLY (हिंदी में) describing the same product with the same richness",
+  ${isOtherRegional ? `"descriptionRegional": "2-3 paragraphs in ${langName.toUpperCase()} ONLY (${langScript} में) describing the same product",` : '"descriptionRegional": "",'}
+  "highlights": [
+    "Key feature 1 in English",
+    "Key feature 2 in English",
+    "Key feature 3 in English",
+    "Key feature 4 in English"
+  ]
+}`;
+}
+
+function buildDescriptionUserPrompt(params: {
+  artisanName: string;
+  artisanCraft?: string;
+  artisanLocation?: string;
+  productData: ProductExtraction;
+  transcript: string;
+  additionalText?: string;
+  language?: string;
+}): string {
+  const langCode = params.language || 'en';
+  const langName = getLanguageDisplayName(langCode);
+  const productInfo = JSON.stringify(params.productData, null, 2);
+
+  return `Artisan: ${params.artisanName}${params.artisanCraft ? `, craft: ${params.artisanCraft}` : ''}${params.artisanLocation ? `, from ${params.artisanLocation}` : ''}
+Language: ${langName} (code: ${langCode})
+
+Product Data:
+${productInfo}
+
+Artisan's own description (voice transcript): "${params.transcript}"
+${params.additionalText ? `Additional notes: "${params.additionalText}"` : ''}
+
+Write a rich, authentic product description. Remember: each language goes in its OWN field. Do NOT mix languages.`;
+}
+
 // ============================================
 // 1. Groq AI Implementation (Ultra-Fast LPU Inference)
-// Models: llama-3.3-70b-versatile, llama-3.1-8b-instant
 // ============================================
 
 export class GroqAIService implements AIService {
@@ -101,7 +175,7 @@ export class GroqAIService implements AIService {
     for (const modelName of modelsToTry) {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000);
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -117,7 +191,7 @@ export class GroqAIService implements AIService {
               { role: 'user', content: prompt }
             ],
             response_format: { type: 'json_object' },
-            temperature: 0.1,
+            temperature: 0.2,
           }),
         });
 
@@ -142,20 +216,27 @@ export class GroqAIService implements AIService {
   }
 
   async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
-    const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts and artisan profiling.
-Extract structured artisan profile information from a speech transcript in any Indian language. Return valid JSON only.
+    const langName = getLanguageDisplayName(language);
+
+    const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts.
+Extract structured artisan profile information from a speech transcript. The transcript may be in ${langName} or a mix of languages.
+IMPORTANT: Translate all extracted values to English. For example, if they say their name in Tamil, keep the name as-is but translate location/craft type to English equivalents.
+Return valid JSON only.
 Expected JSON:
 {
   "name": string or null,
-  "location": string or null,
+  "location": string or null (city/village name),
   "district": string or null,
-  "state": string or null,
-  "craftType": string or null,
-  "experience": string or null,
-  "artisanStory": string or null
+  "state": string or null (Indian state name in English),
+  "craftType": string or null (type of craft in English, e.g., "Silk Weaving", "Pottery", "Wood Carving"),
+  "experience": string or null (e.g., "15 years"),
+  "artisanStory": string or null (brief story about the artisan in English)
 }`;
 
-    const prompt = `Language context: ${language || 'Indian regional'}\nExtract artisan profile from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
+    const prompt = `Language: ${langName} (code: ${language || 'unknown'})
+Extract artisan profile from this transcript. Only extract what is explicitly stated. Translate values to English where appropriate.
+
+"${transcript}"`;
 
     const response = await this.callGroq(prompt, systemInstruction);
     const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
@@ -164,25 +245,32 @@ Expected JSON:
   }
 
   async extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction> {
-    const systemInstruction = `You are an expert multilingual product information extraction assistant for handcrafted artisan products across India.
-Extract structured product details from a speech transcript in any Indian language. Return valid JSON only.
+    const langName = getLanguageDisplayName(language);
+
+    const systemInstruction = `You are an expert multilingual product information extraction assistant for handcrafted artisan products.
+Extract structured product details from a speech transcript. The transcript may be in ${langName} or a mix of languages.
+IMPORTANT: Translate all extracted values to English. For example, "रेशमी साड़ी" → productName: "Silk Saree".
+Return valid JSON only.
 Expected JSON:
 {
-  "productName": string or null,
-  "category": string or null,
-  "material": string or null,
+  "productName": string or null (product name in English),
+  "category": string or null (category in English, e.g., "Saree", "Pottery", "Jewelry"),
+  "material": string or null (material in English, e.g., "Silk", "Cotton", "Wood"),
   "quantity": number or null,
-  "productionTime": string or null,
-  "craftTechnique": string or null,
+  "productionTime": string or null (e.g., "3 days", "1 week"),
+  "craftTechnique": string or null (technique in English, e.g., "Handloom Weaving", "Hand Painting"),
   "dimensions": string or null,
-  "color": string or null,
+  "color": string or null (color in English),
   "weight": string or null,
   "otherAttributes": object or null
 }`;
 
-    let prompt = `Language context: ${language || 'Indian regional'}\nExtract product details from this transcript:\n\n"${transcript}"`;
+    let prompt = `Language: ${langName} (code: ${language || 'unknown'})
+Extract product details from this transcript. Translate values to English.
+
+"${transcript}"`;
     if (additionalText) {
-      prompt += `\n\nAdditional text:\n"${additionalText}"`;
+      prompt += `\n\nAdditional information:\n"${additionalText}"`;
     }
 
     const response = await this.callGroq(prompt, systemInstruction);
@@ -202,36 +290,9 @@ Expected JSON:
   }): Promise<ProductDescription> {
     const langCode = params.language || 'en';
     const langName = getLanguageDisplayName(langCode);
-    const isOtherRegional = langCode !== 'en' && langCode !== 'hi';
 
-    const systemInstruction = `You are a professional multilingual product description writer for an authentic Indian artisan marketplace.
-CRITICAL MANDATORY REQUIREMENT:
-Every product description MUST COMPULSORILY be written in:
-1. English (Mandatory)
-2. Hindi / हिंदी (Mandatory)
-${isOtherRegional ? `3. ${langName} (Mandatory - the artisan's selected language)` : ''}
-
-You MUST return valid JSON matching this schema:
-{
-  "title": "Compelling product title in English",
-  "shortDescription": "Concise summary with English, Hindi, and ${langName} translations",
-  "longDescription": "Full authentic product story structured with clear sections:\n\n**English**:\n[2-3 paragraphs in English celebrating the handmade craftsmanship, artisan story, materials, and authentic heritage]\n\n**हिंदी (Hindi)**:\n[2-3 paragraphs in Hindi describing the same authentic product and craftsmanship]\n\n${isOtherRegional ? `**${langName}**:\n[2-3 paragraphs in ${langName} describing the same product]` : ''}",
-  "highlights": [
-    "English feature 1 / हिंदी मुख्य बिंदु 1",
-    "English feature 2 / हिंदी मुख्य बिंदु 2",
-    "English feature 3 / हिंदी मुख्य बिंदु 3"
-  ]
-}`;
-
-    const productInfo = JSON.stringify(params.productData, null, 2);
-    const prompt = `Artisan's Selected Language: ${langName} (Code: ${langCode})
-Artisan Name: ${params.artisanName}${params.artisanCraft ? `, specializing in ${params.artisanCraft}` : ''}${params.artisanLocation ? ` from ${params.artisanLocation}` : ''}
-Product Structured Data:
-${productInfo}
-Original Artisan Notes/Transcript: "${params.transcript}"
-${params.additionalText ? `Additional Artisan Notes: "${params.additionalText}"` : ''}
-
-Generate the complete multilingual product description including English, Hindi, and ${langName}.`;
+    const systemInstruction = buildDescriptionSystemPrompt(langCode, langName);
+    const prompt = buildDescriptionUserPrompt(params);
 
     const response = await this.callGroq(prompt, systemInstruction);
     const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
@@ -258,19 +319,16 @@ export class GeminiAIService implements AIService {
   private async callGemini(prompt: string, systemInstruction: string): Promise<string> {
     const apiKey = this.apiKey.trim();
     const modelsToTry = [
-      'gemini-3.5-flash-lite',
-      'gemini-3.1-flash-lite',
-      'gemini-3.5-flash',
-      'gemini-flash-latest',
-      'gemini-3.7-flash',
-      'gemini-pro-latest'
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-pro',
     ];
 
     for (const modelName of modelsToTry) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 12000);
+        const timeout = setTimeout(() => controller.abort(), 15000);
 
         const res = await fetch(url, {
           method: 'POST',
@@ -285,7 +343,7 @@ export class GeminiAIService implements AIService {
             }],
             generationConfig: {
               responseMimeType: 'application/json',
-              temperature: 0.1,
+              temperature: 0.2,
             }
           }),
         });
@@ -311,8 +369,12 @@ export class GeminiAIService implements AIService {
   }
 
   async extractArtisanProfile(transcript: string, language?: string): Promise<ArtisanProfileExtraction> {
-    const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts and artisan profiling.
-Your job is to extract structured artisan profile information from a speech transcript in any Indian language. Return valid JSON only.
+    const langName = getLanguageDisplayName(language);
+
+    const systemInstruction = `You are an expert multilingual information extraction assistant specializing in Indian handicrafts.
+Extract structured artisan profile information from a speech transcript. The transcript may be in ${langName} or a mix of languages.
+IMPORTANT: Translate all extracted values to English. For example, if they say their name in Tamil, keep the name as-is but translate location/craft type to English equivalents.
+Return valid JSON only.
 Expected JSON:
 {
   "name": string or null,
@@ -324,7 +386,10 @@ Expected JSON:
   "artisanStory": string or null
 }`;
 
-    const prompt = `Language context: ${language || 'Indian regional'}\nExtract artisan profile information from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
+    const prompt = `Language: ${langName} (code: ${language || 'unknown'})
+Extract artisan profile from this transcript. Only extract what is explicitly stated.
+
+"${transcript}"`;
 
     const response = await this.callGemini(prompt, systemInstruction);
     const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();
@@ -333,8 +398,12 @@ Expected JSON:
   }
 
   async extractProductDetails(transcript: string, additionalText?: string, language?: string): Promise<ProductExtraction> {
+    const langName = getLanguageDisplayName(language);
+
     const systemInstruction = `You are an expert multilingual product information extraction assistant for handcrafted products.
-Your job is to extract structured product details from an artisan's speech transcript in any Indian language. Return valid JSON only.
+Extract structured product details from an artisan's speech transcript. The transcript may be in ${langName} or a mix of languages.
+IMPORTANT: Translate all extracted values to English.
+Return valid JSON only.
 Expected JSON:
 {
   "productName": string or null,
@@ -349,9 +418,12 @@ Expected JSON:
   "otherAttributes": object or null
 }`;
 
-    let prompt = `Language context: ${language || 'Indian regional'}\nExtract product details from this transcript. Only extract what is explicitly stated:\n\n"${transcript}"`;
+    let prompt = `Language: ${langName} (code: ${language || 'unknown'})
+Extract product details from this transcript. Translate values to English.
+
+"${transcript}"`;
     if (additionalText) {
-      prompt += `\n\nAdditional information provided by the artisan:\n"${additionalText}"`;
+      prompt += `\n\nAdditional information:\n"${additionalText}"`;
     }
 
     const response = await this.callGemini(prompt, systemInstruction);
@@ -371,36 +443,9 @@ Expected JSON:
   }): Promise<ProductDescription> {
     const langCode = params.language || 'en';
     const langName = getLanguageDisplayName(langCode);
-    const isOtherRegional = langCode !== 'en' && langCode !== 'hi';
 
-    const systemInstruction = `You are a professional multilingual product description writer for an authentic Indian artisan marketplace.
-CRITICAL MANDATORY REQUIREMENT:
-Every product description MUST COMPULSORILY be written in:
-1. English (Mandatory)
-2. Hindi / हिंदी (Mandatory)
-${isOtherRegional ? `3. ${langName} (Mandatory - the artisan's selected language)` : ''}
-
-You MUST return valid JSON matching this schema:
-{
-  "title": "Compelling product title in English",
-  "shortDescription": "Concise summary with English, Hindi, and ${langName} translations",
-  "longDescription": "Full authentic product story structured with clear sections:\n\n**English**:\n[2-3 paragraphs in English celebrating the handmade craftsmanship, artisan story, materials, and authentic heritage]\n\n**हिंदी (Hindi)**:\n[2-3 paragraphs in Hindi describing the same authentic product and craftsmanship]\n\n${isOtherRegional ? `**${langName}**:\n[2-3 paragraphs in ${langName} describing the same product]` : ''}",
-  "highlights": [
-    "English feature 1 / हिंदी मुख्य बिंदु 1",
-    "English feature 2 / हिंदी मुख्य बिंदु 2",
-    "English feature 3 / हिंदी मुख्य बिंदु 3"
-  ]
-}`;
-
-    const productInfo = JSON.stringify(params.productData, null, 2);
-    const prompt = `Artisan's Selected Language: ${langName} (Code: ${langCode})
-Artisan Name: ${params.artisanName}${params.artisanCraft ? `, specializing in ${params.artisanCraft}` : ''}${params.artisanLocation ? ` from ${params.artisanLocation}` : ''}
-Product Structured Data:
-${productInfo}
-Original Artisan Notes/Transcript: "${params.transcript}"
-${params.additionalText ? `Additional Artisan Notes: "${params.additionalText}"` : ''}
-
-Generate the complete multilingual product description including English, Hindi, and ${langName}.`;
+    const systemInstruction = buildDescriptionSystemPrompt(langCode, langName);
+    const prompt = buildDescriptionUserPrompt(params);
 
     const response = await this.callGemini(prompt, systemInstruction);
     const cleaned = response.replace(/```json\n?|\n?```/g, '').trim();

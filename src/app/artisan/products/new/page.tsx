@@ -108,6 +108,8 @@ export default function NewProductPage() {
   const [generatedTitle, setGeneratedTitle] = useState('');
   const [shortDesc, setShortDesc] = useState('');
   const [longDesc, setLongDesc] = useState('');
+  const [descHindi, setDescHindi] = useState('');
+  const [descRegional, setDescRegional] = useState('');
   const [highlights, setHighlights] = useState<string[]>([]);
 
   // Cost & Pricing state
@@ -603,6 +605,8 @@ export default function NewProductPage() {
       setGeneratedTitle(data.description.title || details.productName || 'Handcrafted Product');
       setShortDesc(data.description.shortDescription || '');
       setLongDesc(data.description.longDescription || '');
+      setDescHindi(data.description.descriptionHindi || '');
+      setDescRegional(data.description.descriptionRegional || '');
       setHighlights(data.description.highlights || []);
       setStep('cost_pricing');
     } catch (err) {
@@ -676,6 +680,8 @@ export default function NewProductPage() {
         title: generatedTitle,
         shortDescription: shortDesc,
         longDescription: longDesc,
+        descriptionHindi: descHindi,
+        descriptionRegional: descRegional,
         highlights,
         category: details.category,
         material: details.material,
@@ -1404,38 +1410,80 @@ export default function NewProductPage() {
               />
             </div>
 
-            {/* Multilingual Short Summary */}
+            {/* Short Summary (English) */}
             <div className="form-group">
               <label className="form-label">
-                🌐 Multilingual Summary (English, Hindi & Regional)
+                📝 Short Summary (English)
               </label>
               <textarea
                 className="form-input form-textarea"
-                style={{ minHeight: '75px', fontSize: 'var(--text-sm)' }}
+                style={{ minHeight: '65px', fontSize: 'var(--text-sm)' }}
                 value={shortDesc}
                 onChange={(e) => setShortDesc(e.target.value)}
-                placeholder="Multilingual summary (English, Hindi, Regional)"
+                placeholder="Brief product summary in English"
               />
             </div>
 
-            {/* Multilingual Detailed Story & Description */}
+            {/* English Description */}
             <div className="form-group">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
                 <label className="form-label" style={{ margin: 0 }}>
-                  📜 Detailed Story (English + Hindi + Regional Language)
+                  🇬🇧 Description (English)
                 </label>
                 <span className="badge badge-primary" style={{ fontSize: 'var(--text-xs)' }}>
-                  Multilingual AI
+                  AI Generated
                 </span>
               </div>
               <textarea
                 className="form-input form-textarea"
-                style={{ minHeight: '160px', fontFamily: 'inherit', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}
+                style={{ minHeight: '120px', fontFamily: 'inherit', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}
                 value={longDesc}
                 onChange={(e) => setLongDesc(e.target.value)}
-                placeholder="Detailed multilingual product description"
+                placeholder="Detailed product description in English"
               />
             </div>
+
+            {/* Hindi Description */}
+            {descHindi && (
+              <div className="form-group">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    🇮🇳 विवरण (हिंदी / Hindi)
+                  </label>
+                  <span className="badge" style={{ fontSize: 'var(--text-xs)', background: '#FF9933', color: 'white' }}>
+                    हिंदी
+                  </span>
+                </div>
+                <textarea
+                  className="form-input form-textarea"
+                  style={{ minHeight: '120px', fontFamily: 'inherit', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}
+                  value={descHindi}
+                  onChange={(e) => setDescHindi(e.target.value)}
+                  placeholder="हिंदी में उत्पाद विवरण"
+                />
+              </div>
+            )}
+
+            {/* Regional Language Description */}
+            {descRegional && (
+              <div className="form-group">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    🌏 Regional Language Description
+                  </label>
+                  <span className="badge" style={{ fontSize: 'var(--text-xs)', background: '#138808', color: 'white' }}>
+                    Regional
+                  </span>
+                </div>
+                <textarea
+                  className="form-input form-textarea"
+                  style={{ minHeight: '120px', fontFamily: 'inherit', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}
+                  value={descRegional}
+                  onChange={(e) => setDescRegional(e.target.value)}
+                  placeholder="Regional language product description"
+                />
+              </div>
+            )}
 
             {/* Final Direct Selling Price */}
             <div className="form-group">
