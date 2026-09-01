@@ -139,13 +139,16 @@ export default function OnboardingPage() {
         if (sttData.transcript && sttData.transcript.trim()) {
           finalTranscript = sttData.transcript;
         }
+      } else {
+        const sttErr = await sttRes.json().catch(() => ({ error: 'Unknown STT error' }));
+        console.warn('[STT] Server error:', sttErr.error);
       }
     } catch (sttErr) {
       console.warn('Server STT failed, using Web Speech API transcript:', sttErr);
     }
 
     if (!finalTranscript || finalTranscript.trim().length === 0) {
-      setError('Could not transcribe speech. Please speak clearly or enter details manually.');
+      setError('Could not transcribe speech. Please speak for at least 3-5 seconds, then enter details manually below.');
       setStep('record');
       return;
     }
