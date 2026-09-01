@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface ProductDetail {
@@ -39,18 +39,9 @@ interface DeliveryEstimate {
   stockStatusNote?: string;
 }
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: productId } = use(params);
   const router = useRouter();
-  const [productId, setProductId] = useState<string>('');
-
-  useEffect(() => {
-    // Handle both Promise<params> (Next.js 15) and direct params
-    if (params instanceof Promise) {
-      params.then((p) => setProductId(p.id));
-    } else {
-      setProductId((params as { id: string }).id);
-    }
-  }, [params]);
 
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -249,7 +240,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  if (!productId || loading) {
+  if (loading) {
     return (
       <div className="page-center">
         <div className="spinner" />
