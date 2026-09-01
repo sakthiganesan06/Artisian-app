@@ -50,12 +50,25 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
+    // Parse highlights from JSON string to array
+    let highlights: string[] = [];
+    try {
+      const raw = product.highlights;
+      if (Array.isArray(raw)) {
+        highlights = raw;
+      } else if (typeof raw === 'string' && raw.trim()) {
+        highlights = JSON.parse(raw);
+      }
+    } catch {
+      highlights = [];
+    }
+
     const transformed = {
       id: product.id,
       title: product.title,
       shortDescription: product.shortDescription,
       longDescription: product.longDescription,
-      highlights: product.highlights,
+      highlights,
       category: product.category,
       material: product.material,
       craftTechnique: product.craftTechnique,
@@ -66,15 +79,15 @@ export async function GET(
       priceRupees: paisaToRupees(product.sellingPrice),
       pricePaisa: product.sellingPrice,
       priceFormatted: `₹${paisaToRupees(product.sellingPrice).toLocaleString('en-IN')}`,
-      images: product.images.map((img) => ({
+      images: (product.images || []).map((img) => ({
         id: img.id,
         url: img.processedUrl || img.originalUrl,
         originalUrl: img.originalUrl,
       })),
-      artisan: product.artisan,
-      stock: product.inventory?.currentStock || 0,
-      inStock: (product.inventory?.currentStock || 0) > 0,
-      moq: product.inventory?.moq || 1,
+      artisan: product.artisan || { name: 'Unknown', artisanId: '', location: null, craftType: null, experience: null, artisanStory: null },
+      stock: product.inventory?.currentStock ?? 0,
+      inStock: (product.inventory?.currentStock ?? 0) > 0,
+      moq: product.inventory?.moq ?? 1,
       status: product.status,
     };
 

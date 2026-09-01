@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface ProductDetail {
@@ -39,9 +39,18 @@ interface DeliveryEstimate {
   stockStatusNote?: string;
 }
 
-export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> | { id: string } }) {
   const router = useRouter();
+  const [productId, setProductId] = useState<string>('');
+
+  useEffect(() => {
+    // Handle both Promise<params> (Next.js 15) and direct params
+    if (params instanceof Promise) {
+      params.then((p) => setProductId(p.id));
+    } else {
+      setProductId((params as { id: string }).id);
+    }
+  }, [params]);
 
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,31 +95,42 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     } catch {}
   };
 
-  const fetchProduct = async () => {
+  const fetchProduct = async (id: string) => {
     setLoading(true);
+    setError('');
     try {
       const res = await fetch(`/api/marketplace/products/${id}`);
       if (res.ok) {
         const data = await res.json();
-        setProduct(data.product);
-        if (data.product.images?.length > 0) {
-          setSelectedImage(data.product.images[0].url);
+        const p = data.product;
+        // Ensure highlights is always an array
+        if (p && !Array.isArray(p.highlights)) {
+          try {
+            p.highlights = typeof p.highlights === 'string' ? JSON.parse(p.highlights) : [];
+          } catch {
+            p.highlights = [];
+          }
+        }
+        setProduct(p);
+        if (p?.images?.length > 0) {
+          setSelectedImage(p.images[0].url);
         }
       } else {
         setError('Product not found or unavailable');
       }
     } catch {
-      setError('Failed to load product');
+      setError('Failed to load product. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!productId) return;
     checkSessionAndOwner();
-    fetchProduct();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    fetchProduct(productId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
 
   // Stock & Delivery Validation
   const validateStockAndEstimate = async (qty: number, mode: 'RETAIL' | 'B2B') => {
@@ -120,7 +140,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId: id,
+          productId: productId,
           quantity: qty,
           orderType: mode,
         }),
@@ -160,16 +180,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     setError('');
 
     if (orderMode === 'RETAIL') {
-      if (!fullName || !phone || !address) {
+      if (!fullName.trim() || !phone.trim() || !address.trim()) {
         setError('Please fill in Name, Phone, and Address');
         return;
       }
     } else if (orderMode === 'B2B') {
-      if (!businessName || !phone || !address || !gstNumber) {
+      if (!businessName.trim() || !phone.trim() || !address.trim() || !gstNumber.trim()) {
         setError('Please fill in Business Name, GST Number, Phone, and Address');
         return;
       }
-      // Validate GST format regex
       const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
       if (!gstRegex.test(gstNumber)) {
         setError('Invalid GST Number format (e.g. 22AAAAA0000A1Z5)');
@@ -181,7 +200,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
     try {
       const payload = {
-        productId: id,
+        productId: productId,
         quantity,
         orderType: orderMode,
         buyerDetails: orderMode === 'RETAIL' ? {
@@ -218,11 +237,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       setCreatedOrder({
         orderId: data.order.orderId,
         totalFormatted: data.order.totalFormatted,
-        deliveryRange: data.order.deliveryEstimate.formattedRange,
+        deliveryRange: data.order.deliveryEstimate?.formattedRange || 'Estimated within 7-10 days',
       });
 
       // Refresh product stock
-      fetchProduct();
+      fetchProduct(productId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Order submission failed');
     } finally {
@@ -230,7 +249,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  if (loading) {
+  if (!productId || loading) {
     return (
       <div className="page-center">
         <div className="spinner" />
@@ -251,6 +270,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   }
 
   if (!product) return null;
+
+  // Safe highlights array
+  const highlights = Array.isArray(product.highlights) ? product.highlights : [];
 
   // Order Confirmation Success View
   if (createdOrder) {
@@ -279,7 +301,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           <div className="alert alert-success" style={{ textAlign: 'left', marginBottom: 'var(--space-6)' }}>
-            🔔 Notification has been sent to artisan <strong>{product.artisan.name}</strong> to process your order.
+            🔔 Notification has been sent to artisan <strong>{product.artisan?.name}</strong> to process your order.
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--space-4)' }}>
@@ -316,7 +338,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
 
-            {product.images?.length > 1 && (
+            {(product.images?.length ?? 0) > 1 && (
               <div className="flex gap-3">
                 {product.images.map((img) => (
                   <img
@@ -338,27 +360,31 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             )}
 
             {/* Artisan Profile Card */}
-            <div className="card card-body" style={{ marginTop: 'var(--space-6)' }}>
-              <h4 style={{ marginBottom: 'var(--space-2)' }}>🎨 Meet the Artisan</h4>
-              <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)' }}>{product.artisan.name}</div>
-              <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-3)' }}>
-                {product.artisan.craftType} {product.artisan.location ? `• ${product.artisan.location}` : ''}
+            {product.artisan && (
+              <div className="card card-body" style={{ marginTop: 'var(--space-6)' }}>
+                <h4 style={{ marginBottom: 'var(--space-2)' }}>🎨 Meet the Artisan</h4>
+                <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)' }}>{product.artisan.name}</div>
+                <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-3)' }}>
+                  {product.artisan.craftType} {product.artisan.location ? `• ${product.artisan.location}` : ''}
+                </div>
+
+                {product.artisan.artisanStory && (
+                  <p style={{ fontStyle: 'italic', fontSize: 'var(--text-sm)' }}>
+                    &ldquo;{product.artisan.artisanStory}&rdquo;
+                  </p>
+                )}
+
+                {product.artisan.artisanId && (
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    style={{ marginTop: 'var(--space-3)' }}
+                    onClick={() => router.push(`/artisan/${product.artisan.artisanId}`)}
+                  >
+                    View Public Artisan Profile & QR →
+                  </button>
+                )}
               </div>
-
-              {product.artisan.artisanStory && (
-                <p style={{ fontStyle: 'italic', fontSize: 'var(--text-sm)' }}>
-                  &ldquo;{product.artisan.artisanStory}&rdquo;
-                </p>
-              )}
-
-              <button
-                className="btn btn-secondary btn-sm"
-                style={{ marginTop: 'var(--space-3)' }}
-                onClick={() => router.push(`/artisan/${product.artisan.artisanId}`)}
-              >
-                View Public Artisan Profile & QR →
-              </button>
-            </div>
+            )}
           </div>
 
           {/* Right: Product Details & Order Flow */}
@@ -372,7 +398,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {product.priceFormatted}
             </div>
 
-            {/* Multilingual Product Story & Description */}
+            {/* Product Story & Description */}
             <div className="card card-body" style={{ marginBottom: 'var(--space-6)', background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
                 <h4 style={{ margin: 0 }}>📖 Product Story & Details</h4>
@@ -408,13 +434,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               )}
 
-              {product.highlights && product.highlights.length > 0 && (
+              {highlights.length > 0 && (
                 <div style={{ marginTop: 'var(--space-4)', borderTop: '1px solid var(--color-border-light)', paddingTop: 'var(--space-3)' }}>
                   <strong style={{ fontSize: 'var(--text-xs)', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
                     Key Highlights
                   </strong>
                   <ul style={{ margin: 'var(--space-2) 0 0 var(--space-4)', fontSize: 'var(--text-sm)', color: 'var(--color-text)' }}>
-                    {product.highlights.map((hl, idx) => (
+                    {highlights.map((hl, idx) => (
                       <li key={idx} style={{ marginBottom: '4px' }}>{hl}</li>
                     ))}
                   </ul>
@@ -443,7 +469,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <h4 style={{ margin: 0, color: 'var(--color-primary-dark)' }}>Artisan Catalog View</h4>
                 </div>
                 <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)', lineHeight: 1.6 }}>
-                  You are viewing your handcrafted product in the marketplace catalog. Customer ordering is reserved for retail and B2B buyers. To update pricing or stock, visit your artisan dashboard.
+                  You are viewing your product as a customer would see it. To update pricing or stock, visit your artisan dashboard.
                 </p>
                 <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
                   <button className="btn btn-primary" onClick={() => router.push('/artisan/home')}>
@@ -540,15 +566,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   <>
                     <div className="form-group">
                       <label className="form-label">Full Name *</label>
-                      <input className="form-input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Lakshmi Narayan" />
+                      <input className="form-input" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your full name" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Phone Number *</label>
-                      <input className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" />
+                      <input className="form-input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Delivery Address *</label>
-                      <textarea className="form-input form-textarea" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Complete door address..." />
+                      <textarea className="form-input form-textarea" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Complete door address with city, state and PIN..." />
                     </div>
                   </>
                 ) : (
@@ -563,7 +589,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                     <div className="form-group">
                       <label className="form-label">Contact Phone Number *</label>
-                      <input className="form-input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" />
+                      <input className="form-input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Business Delivery Address *</label>
